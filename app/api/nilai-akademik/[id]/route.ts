@@ -1,11 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+// PUT /api/nilai-akademik/[id]
+export async function PUT(req: NextRequest) {
+    const id = req.nextUrl.pathname.split("/").pop(); // ambil ID dari URL
+
+    if (!id) {
+        return NextResponse.json({ success: false, message: "Missing ID" }, { status: 400 });
+    }
+
     try {
         const { nilai } = await req.json();
+
         const updated = await prisma.nilaiAkademikSiswa.update({
-            where: { id: params.id },
+            where: { id },
             data: { nilai: parseInt(nilai) },
         });
 
@@ -16,11 +24,16 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     }
 }
 
+// DELETE /api/nilai-akademik/[id]
+export async function DELETE(req: NextRequest) {
+    const id = req.nextUrl.pathname.split("/").pop();
 
+    if (!id) {
+        return NextResponse.json({ success: false, message: "Missing ID" }, { status: 400 });
+    }
 
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
     try {
-        await prisma.nilaiAkademikSiswa.delete({ where: { id: params.id } });
+        await prisma.nilaiAkademikSiswa.delete({ where: { id } });
         return NextResponse.json({ success: true });
     } catch (err) {
         console.error("DELETE /nilai-akademik error", err);
