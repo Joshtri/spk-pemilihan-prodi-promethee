@@ -97,7 +97,7 @@ export default function RiasecPage() {
                           initialValues={{
                             id: item.id,
                             programStudiId: item.programStudiId,
-                            tipeRiasec: item.tipeRiasec,
+                            tipeRiasec: [item.tipeRiasec],
                           }}
                           trigger={
                             <DialogTrigger asChild>

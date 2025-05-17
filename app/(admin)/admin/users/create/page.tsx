@@ -76,7 +76,7 @@
                 name="name"
                 label="Nama"
                 placeholder="Nama pengguna"
-                control={control}
+                // control={control}
                 error={errors.name?.message}
               />
               <FormField
@@ -84,7 +84,7 @@
                 label="Email"
                 placeholder="Email pengguna"
                 required
-                control={control}
+                // control={control}
                 rules={{ required: "Email wajib diisi" }}
                 error={errors.email?.message}
                 type="email"
@@ -95,7 +95,7 @@
                 placeholder="Buat password"
                 required
                 type="password"
-                control={control}
+                // control={control}
                 rules={{ required: "Password wajib diisi" }}
                 error={errors.password?.message}
               />
@@ -106,7 +106,7 @@
                 required
                 type="select"
                 options={roleOptions}
-                control={control}
+                // control={control}
                 rules={{ required: "Role wajib dipilih" }}
                 error={errors.roles?.message as string}
               />
