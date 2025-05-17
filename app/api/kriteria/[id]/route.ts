@@ -1,12 +1,16 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
-export async function GET(
-    _: Request,
-    { params }: { params: { id: string } }
-) {
+// GET /api/kriteria/[id]
+export async function GET(req: NextRequest) {
+    const id = req.nextUrl.pathname.split("/").pop(); // ambil [id] dari path
+
+    if (!id) {
+        return NextResponse.json({ success: false, message: "Invalid ID" }, { status: 400 });
+    }
+
     const item = await prisma.kriteria.findUnique({
-        where: { id: params.id },
+        where: { id },
     });
 
     if (!item) {
@@ -16,16 +20,19 @@ export async function GET(
     return NextResponse.json({ success: true, data: item });
 }
 
-export async function PUT(
-    req: Request,
-    { params }: { params: { id: string } }
-) {
+// PUT /api/kriteria/[id]
+export async function PUT(req: NextRequest) {
+    const id = req.nextUrl.pathname.split("/").pop();
+    if (!id) {
+        return NextResponse.json({ success: false, message: "Invalid ID" }, { status: 400 });
+    }
+
     try {
         const body = await req.json();
         const { nama_kriteria, bobot_kriteria, keterangan } = body;
 
         const updated = await prisma.kriteria.update({
-            where: { id: params.id },
+            where: { id },
             data: {
                 nama_kriteria,
                 bobot_kriteria,
@@ -40,13 +47,16 @@ export async function PUT(
     }
 }
 
-export async function DELETE(
-    _: Request,
-    { params }: { params: { id: string } }
-) {
+// DELETE /api/kriteria/[id]
+export async function DELETE(req: NextRequest) {
+    const id = req.nextUrl.pathname.split("/").pop();
+    if (!id) {
+        return NextResponse.json({ success: false, message: "Invalid ID" }, { status: 400 });
+    }
+
     try {
         await prisma.kriteria.delete({
-            where: { id: params.id },
+            where: { id },
         });
 
         return NextResponse.json({ success: true, message: "Deleted successfully" });
