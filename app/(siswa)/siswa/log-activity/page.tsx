@@ -11,8 +11,16 @@ import { TypographyP } from "@/components/ui/typography";
 import axios from "axios";
 import { useEffect, useState } from "react";
 
+
+
+interface Log {
+  id: string | number;
+  [key: string]: any;
+}
+
+
 export default function LogActivityPage() {
-  const [logs, setLogs] = useState([]);
+  const [logs, setLogs] = useState<Log[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
