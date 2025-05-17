@@ -43,11 +43,12 @@ export default function EvaluasiSiswaPage() {
       .get("/api/evaluasi-siswa")
       .then((res) => {
         setData(res.data.data);
-        const allKriteria = new Set(
+        const allKriteria = new Set<string>(
           res.data.data.flatMap((s: SiswaEvaluasi) =>
             s.penilaian.map((p) => p.kriteria.nama_kriteria)
           )
         );
+
         setKriteriaSet(Array.from(allKriteria));
       })
       .catch((err) => console.error("Gagal memuat evaluasi:", err));
