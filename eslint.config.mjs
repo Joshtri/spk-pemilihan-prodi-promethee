@@ -17,6 +17,10 @@ const eslintConfig = [
       "@typescript-eslint/no-explicit-any": "off", // ⛔ nonaktifkan error 'any'
     },
   },
+
+  {
+    extends: ["next/core-web-vitals", "next/typescript"],
+  },
 ];
 
 export default eslintConfig;
