@@ -28,7 +28,7 @@ export default function LogActivityPage() {
   }, []);
 
   return (
-    <Section>
+    <Section className="">
       <Stack className="space-y-2">
         {/* <TypographyH2>Log Aktivitas</TypographyH2> */}
         <PageHeader
@@ -39,7 +39,7 @@ export default function LogActivityPage() {
             title="Log Aktivitas"
             
         />
-        <TypographyP>
+        <TypographyP className="">
           Riwayat aktivitas penting pada akun Anda, seperti login, logout, dan
           pembaruan data.
         </TypographyP>
