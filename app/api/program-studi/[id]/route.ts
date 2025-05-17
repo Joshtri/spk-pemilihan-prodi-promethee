@@ -1,14 +1,19 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
-interface Params {
-    params: { id: string };
-}
+// Ambil ID dari URL
+const extractId = (req: NextRequest) => req.nextUrl.pathname.split("/").pop();
 
-export async function GET(req: Request, { params }: Params) {
+export async function GET(req: NextRequest) {
+    const id = extractId(req);
+
+    if (!id) {
+        return NextResponse.json({ error: "Missing ID" }, { status: 400 });
+    }
+
     try {
         const data = await prisma.programStudi.findUnique({
-            where: { id: params.id },
+            where: { id },
         });
 
         if (!data) {
@@ -18,30 +23,38 @@ export async function GET(req: Request, { params }: Params) {
         return NextResponse.json({ data });
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : "Unknown error";
-
         return NextResponse.json({ errorMessage }, { status: 500 });
     }
 }
 
-export async function DELETE(req: Request, { params }: Params) {
+export async function DELETE(req: NextRequest) {
+    const id = extractId(req);
+
+    if (!id) {
+        return NextResponse.json({ error: "Missing ID" }, { status: 400 });
+    }
+
     try {
         await prisma.programStudi.delete({
-            where: { id: params.id },
+            where: { id },
         });
 
         return NextResponse.json({ success: true });
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : "Unknown error";
-
         return NextResponse.json({ errorMessage }, { status: 500 });
     }
 }
 
+export async function PUT(req: NextRequest) {
+    const id = extractId(req);
 
-export async function PUT(req: Request, { params }: Params) {
+    if (!id) {
+        return NextResponse.json({ error: "Missing ID" }, { status: 400 });
+    }
+
     try {
         const body = await req.json();
-
         const {
             nama_program_studi,
             biaya_kuliah,
@@ -51,14 +64,14 @@ export async function PUT(req: Request, { params }: Params) {
         } = body;
 
         const updated = await prisma.programStudi.update({
-            where: { id: params.id },
+            where: { id },
             data: {
                 nama_program_studi,
                 biaya_kuliah,
                 akreditasi,
                 keterangan,
                 rumpunIlmuId,
-                updatedAt: new Date(), // tidak wajib, Prisma akan otomatis handle @updatedAt
+                updatedAt: new Date(),
             },
         });
 
