@@ -1,17 +1,22 @@
-// /app/api/kriteria/[id]/sub/route.ts
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
-export async function GET(_: Request, { params }: { params: { id: string } }) {
-    try {
-        const subs = await prisma.subKriteria.findMany({
-            where: { kriteriaId: params.id },
-            orderBy: { createdAt: "asc" },
-        });
+export async function GET(req: NextRequest) {
+  const id = req.nextUrl.pathname.split("/")[4]; // /api/kriteria/[id]/sub
 
-        return NextResponse.json({ success: true, data: subs });
-    } catch (err) {
-        console.error("Error fetching sub kriteria:", err);
-        return NextResponse.json({ success: false, message: "Failed to fetch" }, { status: 500 });
-    }
+  if (!id) {
+    return NextResponse.json({ success: false, message: "Missing ID" }, { status: 400 });
+  }
+
+  try {
+    const subs = await prisma.subKriteria.findMany({
+      where: { kriteriaId: id },
+      orderBy: { createdAt: "asc" },
+    });
+
+    return NextResponse.json({ success: true, data: subs });
+  } catch (err) {
+    console.error("Error fetching sub kriteria:", err);
+    return NextResponse.json({ success: false, message: "Failed to fetch" }, { status: 500 });
+  }
 }
