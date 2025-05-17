@@ -3,9 +3,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+// ✅ PUT /api/mapel-pendukung/[id]
+export async function PUT(req: NextRequest) {
+    const id = req.nextUrl.pathname.split("/").pop();
+
+    if (!id) {
+        return NextResponse.json({ success: false, message: "Missing ID" }, { status: 400 });
+    }
+
     try {
-        const { id } = params;
         const body = await req.json();
         const { programStudiId, nama_mata_pelajaran } = body;
 
@@ -24,10 +30,15 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     }
 }
 
-export async function DELETE(_: NextRequest, { params }: { params: { id: string } }) {
-    try {
-        const { id } = params;
+// ✅ DELETE /api/mapel-pendukung/[id]
+export async function DELETE(req: NextRequest) {
+    const id = req.nextUrl.pathname.split("/").pop();
 
+    if (!id) {
+        return NextResponse.json({ success: false, message: "Missing ID" }, { status: 400 });
+    }
+
+    try {
         await prisma.mataPelajaranPendukung.delete({
             where: { id },
         });
