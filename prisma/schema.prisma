@@ -1,0 +1,192 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  SISWA
+}
+
+model User {
+  id          String    @id @default(uuid()) @db.VarChar(80)
+  name        String
+  email       String    @unique
+  password    String
+  role        Role
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  lastLoginAt DateTime?
+
+  // Relations
+  nilaiAkademik       NilaiAkademikSiswa[]
+  tesMinat            TesMinatSiswa[]
+  hasil               HasilPerhitungan[]
+  evaluasi            EvaluasiKriteria[]
+  Log                 Log[]
+  PilihanProgramStudi PilihanProgramStudi[]
+}
+
+model ProgramStudi {
+  id                 String   @id @default(uuid()) @db.VarChar(80)
+  nama_program_studi String
+  biaya_kuliah       Int
+  akreditasi         String   @db.VarChar(20)
+  keterangan         String?
+  rumpunIlmuId       String?  @db.VarChar(80)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  // Relations
+  mataPelajaranPendukung MataPelajaranPendukung[]
+  riasec                 ProgramStudiRiasec[]
+  // evaluasi               EvaluasiKriteria[]
+  hasil                  HasilPerhitungan[]
+  RumpunIlmu             RumpunIlmu?              @relation(fields: [rumpunIlmuId], references: [id])
+  EvaluasiKriteria       EvaluasiKriteria[]
+  PilihanProgramStudi    PilihanProgramStudi[]
+}
+
+model MataPelajaranPendukung {
+  id                  String   @id @default(uuid()) @db.VarChar(80)
+  programStudiId      String   @db.VarChar(80)
+  nama_mata_pelajaran String
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  // Relations
+  programStudi ProgramStudi @relation(fields: [programStudiId], references: [id])
+}
+
+model ProgramStudiRiasec {
+  id             String   @id @default(uuid()) @db.VarChar(80)
+  programStudiId String   @db.VarChar(80)
+  tipeRiasec     String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relations
+  programStudi ProgramStudi @relation(fields: [programStudiId], references: [id])
+}
+
+model Kriteria {
+  id             String   @id @default(uuid()) @db.VarChar(80)
+  nama_kriteria  String
+  keterangan     String?
+  bobot_kriteria Float    @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relations
+  subKriteria SubKriteria[]
+  evaluasi    EvaluasiKriteria[]
+  hasil       HasilPerhitungan[]
+}
+
+model SubKriteria {
+  id                 String   @id @default(uuid()) @db.VarChar(80)
+  kriteriaId         String   @db.VarChar(80)
+  nama_sub_kriteria  String
+  bobot_sub_kriteria Float
+  keterangan         String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  // Relations
+  kriteria         Kriteria           @relation(fields: [kriteriaId], references: [id])
+  evaluasi         EvaluasiKriteria[]
+  HasilPerhitungan HasilPerhitungan[]
+}
+
+model NilaiAkademikSiswa {
+  id        String   @id @default(uuid()) @db.VarChar(80)
+  userId    String   @db.VarChar(80)
+  pelajaran String
+  nilai     Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id])
+}
+
+model TesMinatSiswa {
+  id        String   @id @default(uuid()) @db.VarChar(80)
+  userId    String   @db.VarChar(80)
+  tipe      String // "R", "I", "A", "S", "E", "C"
+  // skor      Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id])
+}
+
+//jadi yang berelasi disini seharusnya siswa. 
+model EvaluasiKriteria {
+  id             String   @id @default(uuid()) @db.VarChar(80)
+  userId         String   @db.VarChar(80)
+  kriteriaId     String   @db.VarChar(80)
+  subKriteriaId  String   @db.VarChar(80)
+  programStudiId String   @db.VarChar(80)
+  // nilai          Float
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relations
+  user         User         @relation(fields: [userId], references: [id])
+  kriteria     Kriteria     @relation(fields: [kriteriaId], references: [id])
+  subKriteria  SubKriteria  @relation(fields: [subKriteriaId], references: [id])
+  programStudi ProgramStudi @relation(fields: [programStudiId], references: [id])
+}
+
+model RumpunIlmu {
+  id        String   @id @default(uuid()) @db.VarChar(80)
+  nama      String   @db.VarChar(100)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  programStudi ProgramStudi[]
+}
+
+model HasilPerhitungan {
+  id             String   @id @default(uuid()) @db.VarChar(80)
+  userId         String   @db.VarChar(80)
+  programStudiId String   @db.VarChar(80)
+  kriteriaId     String   @db.VarChar(80)
+  subKriteriaId  String   @db.VarChar(80)
+  nilai          Float
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relations
+  user         User         @relation(fields: [userId], references: [id])
+  programStudi ProgramStudi @relation(fields: [programStudiId], references: [id])
+  kriteria     Kriteria     @relation(fields: [kriteriaId], references: [id])
+  subKriteria  SubKriteria  @relation(fields: [subKriteriaId], references: [id])
+}
+
+model Log {
+  id        String   @id @default(uuid())
+  userId    String
+  action    String
+  timestamp DateTime @default(now())
+  metadata  Json?
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model PilihanProgramStudi {
+  id             String   @id @default(uuid()) @db.VarChar(80)
+  userId         String   @db.VarChar(80)
+  programStudiId String   @db.VarChar(80)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user         User         @relation(fields: [userId], references: [id])
+  programStudi ProgramStudi @relation(fields: [programStudiId], references: [id])
+}
