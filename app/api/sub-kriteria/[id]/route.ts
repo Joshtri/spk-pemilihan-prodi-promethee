@@ -1,21 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
-// UPDATE SubKriteria
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+// Utility ambil ID dari URL
+const getIdFromPath = (req: NextRequest) => req.nextUrl.pathname.split("/").pop();
+
+export async function PUT(req: NextRequest) {
+    const id = getIdFromPath(req);
+    if (!id) {
+        return NextResponse.json({ success: false, message: "Missing ID" }, { status: 400 });
+    }
+
     try {
         const body = await req.json();
         const { kriteriaId, nama_sub_kriteria, bobot_sub_kriteria } = body;
 
         if (!kriteriaId || !nama_sub_kriteria || typeof bobot_sub_kriteria !== "number") {
-            return NextResponse.json(
-                { success: false, message: "Invalid data" },
-                { status: 400 }
-            );
+            return NextResponse.json({ success: false, message: "Invalid data" }, { status: 400 });
         }
 
         const updated = await prisma.subKriteria.update({
-            where: { id: params.id },
+            where: { id },
             data: {
                 kriteriaId,
                 nama_sub_kriteria,
@@ -26,18 +30,19 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
         return NextResponse.json({ success: true, data: updated });
     } catch (error) {
         console.error("PUT /sub-kriteria/[id] error:", error);
-        return NextResponse.json(
-            { success: false, message: "Server error" },
-            { status: 500 }
-        );
+        return NextResponse.json({ success: false, message: "Server error" }, { status: 500 });
     }
 }
 
-// DELETE SubKriteria
-export async function DELETE(_: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest) {
+    const id = getIdFromPath(req);
+    if (!id) {
+        return NextResponse.json({ success: false, message: "Missing ID" }, { status: 400 });
+    }
+
     try {
         const deleted = await prisma.subKriteria.delete({
-            where: { id: params.id },
+            where: { id },
         });
 
         return NextResponse.json({ success: true, data: deleted });
