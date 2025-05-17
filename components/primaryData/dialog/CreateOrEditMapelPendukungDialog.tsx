@@ -121,15 +121,13 @@ export function CreateOrEditMapelPendukungDialog({
           <FormField
             name="programStudiId"
             type="select"
-            control={control}
-            label="Program Studi"
+             label="Program Studi"
             placeholder="Pilih program studi"
             options={programStudiOptions}
           />
           <FormField
             name="nama_mata_pelajaran"
-            control={control}
-            label="Nama Mata Pelajaran"
+             label="Nama Mata Pelajaran"
             placeholder="Contoh: Biologi"
           />
 

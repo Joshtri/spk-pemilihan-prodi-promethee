@@ -19,7 +19,9 @@ export async function GET(req: NextRequest): Promise<NextResponse<UserResponse>>
   try {
     const user = await prisma.user.findUnique({
       where: { id },
-      include: { roles: true },
+      // Remove the include if there's no relation, or use the correct relation name
+      // For example, if it's a "role" singular field instead of "roles":
+      // include: { role: true },
     });
 
     if (!user) {

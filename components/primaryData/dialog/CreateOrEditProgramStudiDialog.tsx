@@ -180,8 +180,7 @@ export function CreateOrEditProgramStudiDialog({
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 mt-4">
           <FormField
             name="nama_program_studi"
-            control={control}
-            label="Nama Program Studi"
+             label="Nama Program Studi"
             placeholder="Contoh: Ilmu Komputer"
             rules={{
               required: "Nama program studi wajib diisi",
@@ -194,8 +193,7 @@ export function CreateOrEditProgramStudiDialog({
 
           <FormField
             name="biaya_kuliah"
-            control={control}
-            label="Biaya Kuliah (per semester)"
+             label="Biaya Kuliah (per semester)"
             type="currency"
             placeholder="Contoh: 15.000.000"
             rules={{
@@ -211,8 +209,7 @@ export function CreateOrEditProgramStudiDialog({
 
           <FormField
             name="akreditasi"
-            control={control}
-            label="Akreditasi"
+             label="Akreditasi"
             type="select"
             placeholder="Pilih akreditasi"
             options={[
@@ -226,7 +223,6 @@ export function CreateOrEditProgramStudiDialog({
 
           <FormField
             name="rumpunIlmuId"
-            control={control}
             label="Rumpun Ilmu"
             type="select"
             placeholder={
@@ -235,14 +231,13 @@ export function CreateOrEditProgramStudiDialog({
                 : "Pilih rumpun ilmu"
             }
             options={rumpunIlmuOptions}
-            isLoading={isLoadingRumpunIlmu}
+            disabled={isLoadingRumpunIlmu}
             rules={{ required: "Rumpun ilmu wajib dipilih" }}
           />
 
           <FormField
             name="keterangan"
-            control={control}
-            label="Keterangan (opsional)"
+             label="Keterangan (opsional)"
             placeholder="Keterangan tambahan"
             type="textarea"
             rows={3}

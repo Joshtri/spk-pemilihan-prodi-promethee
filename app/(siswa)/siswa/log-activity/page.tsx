@@ -15,6 +15,8 @@ import { useEffect, useState } from "react";
 
 interface Log {
   id: string | number;
+  action: string;
+  timestamp: string | Date;
   [key: string]: any;
 }
 

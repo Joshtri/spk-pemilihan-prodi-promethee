@@ -40,16 +40,22 @@ export async function POST(req: Request) {
         });
 
         return NextResponse.json({ success: true, data: result });
-    } catch (error) {
+    } catch (error: unknown) {
         console.error("POST ProgramStudi error:", error);
 
         let errorMessage = "Gagal menyimpan program studi";
-        if (error.code === 'P2002') {
+        let errorDetails = "Unknown error";
+
+        if (error && typeof error === 'object' && 'code' in error && error.code === 'P2002') {
             errorMessage = "Nama program studi sudah digunakan";
         }
 
+        if (error && typeof error === 'object' && 'message' in error) {
+            errorDetails = error.message as string;
+        }
+
         return NextResponse.json(
-            { error: errorMessage, details: error.message },
+            { error: errorMessage, details: errorDetails },
             { status: 500 }
         );
     }

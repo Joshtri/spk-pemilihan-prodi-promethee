@@ -76,10 +76,11 @@ export async function POST(req: Request) {
 
         // Simpan evaluasi baru
         const created = await prisma.evaluasiKriteria.createMany({
-            data: evaluations.map((ev: { kriteriaId: string; subKriteriaId: string }) => ({
+            data: evaluations.map((ev: { kriteriaId: string; subKriteriaId: string; programStudiId: string }) => ({
                 userId,
                 kriteriaId: ev.kriteriaId,
                 subKriteriaId: ev.subKriteriaId,
+                programStudiId: ev.programStudiId,
             })),
         });
 

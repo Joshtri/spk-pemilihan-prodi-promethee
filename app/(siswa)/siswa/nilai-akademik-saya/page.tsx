@@ -169,7 +169,7 @@ export default function NilaiAkademikSayaPage() {
                 value={averageGrade}
                 max={100}
                 className="h-2 mt-4"
-                indicatorClassName={getProgressColor(averageGrade)}
+                // indicatorClassName={getProgressColor(averageGrade)}
               />
             </Card>
 
@@ -305,7 +305,7 @@ export default function NilaiAkademikSayaPage() {
                             value={item.nilai}
                             max={100}
                             className="h-2"
-                            indicatorClassName={getProgressColor(item.nilai)}
+                            // indicatorClassName={getProgressColor(item.nilai)}
                           />
                           <span className="text-xs w-8 text-right">
                             {item.nilai}%

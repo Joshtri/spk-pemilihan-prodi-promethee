@@ -11,7 +11,13 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
-export default function LogItemCard({ log }) {
+interface LogItem {
+  action: string;
+  timestamp: string | Date;
+  metadata?: any;
+}
+
+export default function LogItemCard({ log }: { log: LogItem }) {
   return (
     <Card className="w-full shadow-sm">
       <CardHeader className="pb-2">

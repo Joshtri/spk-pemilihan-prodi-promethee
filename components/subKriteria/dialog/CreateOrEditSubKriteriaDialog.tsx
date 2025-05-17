@@ -133,8 +133,7 @@ export function CreateOrEditSubKriteriaDialog({
             label="Kriteria"
             type="select"
             required
-            control={control}
-            options={kriteriaOptions}
+             options={kriteriaOptions}
             rules={{ required: "Kriteria wajib dipilih" }}
             error={errors.kriteriaId?.message}
           />
@@ -143,8 +142,7 @@ export function CreateOrEditSubKriteriaDialog({
             label="Nama Sub Kriteria"
             placeholder="Masukkan nama sub kriteria"
             required
-            control={control}
-            rules={{ required: "Nama sub kriteria wajib diisi" }}
+             rules={{ required: "Nama sub kriteria wajib diisi" }}
             error={errors.nama_sub_kriteria?.message}
           />
           <FormField
@@ -153,8 +151,7 @@ export function CreateOrEditSubKriteriaDialog({
             label="Bobot Sub Kriteria"
             placeholder="Contoh: 0.3"
             required
-            control={control}
-            rules={{ required: "Bobot wajib diisi" }}
+             rules={{ required: "Bobot wajib diisi" }}
             error={errors.bobot_sub_kriteria?.message}
           />
 
@@ -162,8 +159,7 @@ export function CreateOrEditSubKriteriaDialog({
           name="keterangan"
           label="Keterangan"
           placeholder="Masukkan keterangan"
-          control={control}
-          required={false}
+           required={false}
           error={errors.keterangan?.message}
 
           />

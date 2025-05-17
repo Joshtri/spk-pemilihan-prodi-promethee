@@ -1,6 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import MapelPendukung from "@/components/dashboard/siswa/MapelPendukung";
+import RiasecProgramStudi from "@/components/dashboard/siswa/RiasecProgramStudi";
+import RiasecRadarChart from "@/components/dashboard/siswa/RiasecRadarChart";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -9,46 +13,43 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  BarChart,
-  PieChart,
-  BookOpen,
-  GraduationCap,
-  Award,
-  CheckCircle2,
+  fetchSiswaDashboardData
+} from "@/lib/dashboard-data";
+import axios from "axios";
+import {
   AlertCircle,
   ArrowRight,
+  Award,
+  BarChart,
+  BookOpen,
+  CheckCircle2,
+  GraduationCap,
+  PieChart,
 } from "lucide-react";
+import { useEffect, useState } from "react";
 import {
-  BarChart as BarChartComponent,
   Bar,
-  XAxis,
-  YAxis,
+  BarChart as BarChartComponent,
   CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  RadarChart,
-  PolarGrid,
-  PolarAngleAxis,
-  PolarRadiusAxis,
-  Radar,
-  PieChart as PieChartComponent,
-  Pie,
   Cell,
   Legend,
+  Pie,
+  PieChart as PieChartComponent,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis
 } from "recharts";
-import {
-  fetchSiswaDashboardData,
-  generateRiasecRadarData,
-} from "@/lib/dashboard-data";
-import MapelPendukung from "@/components/dashboard/siswa/MapelPendukung";
-import RiasecProgramStudi from "@/components/dashboard/siswa/RiasecProgramStudi";
-import RiasecRadarChart from "@/components/dashboard/siswa/RiasecRadarChart";
-import axios from "axios";
+
+interface ProgramStudi {
+  name: string;
+  akreditasi: string;
+  biaya: string;
+  match: number;
+}
 
 export default function SiswaDashboard() {
   const [activeTab, setActiveTab] = useState("overview");
@@ -86,12 +87,18 @@ export default function SiswaDashboard() {
         setLoading(false);
       }
     };
-
+    
     loadData();
   }, []);
 
+  // Define interfaces for dashboard data
+  interface NilaiAkademik {
+    pelajaran: string;
+    nilai: number;
+  }
+
   // Mock data - in a real app, this would come from your database
-  const nilaiAkademik = dashboardData?.nilaiAkademik || [];
+  const nilaiAkademik = (dashboardData?.nilaiAkademik || []) as NilaiAkademik[];
   // const riasecData = generateRiasecRadarData(dashboardData?.tesMinat || []);
   const rekomendasiProdi = dashboardData?.hasilPerhitungan || [];
   const pilihanProdi = dashboardData?.pilihanProdi || [];
@@ -262,7 +269,7 @@ export default function SiswaDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {rekomendasiProdi.slice(0, 3).map((prodi, index) => (
+                  {rekomendasiProdi.slice(0, 3).map((prodi: ProgramStudi, index: number) => (
                     <div
                       key={index}
                       className="flex items-center justify-between"
@@ -422,7 +429,7 @@ B
             </CardHeader>
             <CardContent>
               <div className="space-y-6">
-                {rekomendasiProdi.map((prodi, index) => (
+                {rekomendasiProdi.map((prodi: ProgramStudi, index: number) => (
                   <div key={index} className="border rounded-lg p-4">
                     <div className="flex justify-between items-start">
                       <div>

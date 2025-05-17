@@ -91,7 +91,6 @@ export function CreateOrEditRumpunIlmuDialog({
           <FormField
             type="text"
             name="nama"
-            control={control}
             label="Nama Rumpun Ilmu"
             placeholder="Contoh: Ilmu Alam, Humaniora, Ilmu Sosial"
           />

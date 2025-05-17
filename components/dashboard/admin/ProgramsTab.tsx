@@ -92,8 +92,8 @@ function RumpunIlmuDistributionChart({
   riasecDistribution: Array<any>;
 }) {
   // Calculate rumpun ilmu distribution
-  const rumpunIlmuData = programStudiList.reduce((acc, program) => {
-    const existing = acc.find((item) => item.name === program.rumpunIlmu);
+  const rumpunIlmuData = programStudiList.reduce((acc: { name: string; value: number }[], program) => {
+    const existing = acc.find((item: { name: string; value: number }) => item.name === program.rumpunIlmu);
     if (existing) {
       existing.value += 1;
     } else {
