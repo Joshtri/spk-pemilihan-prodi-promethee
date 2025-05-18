@@ -2,8 +2,12 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   /* config options here */
-    typescript: {
+  typescript: {
     ignoreBuildErrors: true, // ⛔ abaikan type error saat build
+  },
+
+  env: {
+    JWT_SECRET: process.env.JWT_SECRET,
   },
 
 };

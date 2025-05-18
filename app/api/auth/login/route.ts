@@ -85,13 +85,14 @@ export async function POST(request: NextRequest) {
       token,
     });
 
-    response.cookies.set("auth_token", token, {
+    response.cookies.set("token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
-      maxAge: 60 * 60 * 24, // 24 hours
+      maxAge: 60 * 60 * 24,
       path: "/",
     });
+
 
     return response;
   } catch (error) {

@@ -47,26 +47,26 @@ export default function LoginPage() {
     formState: { errors },
   } = form;
 
-  const onSubmit = async (data: LoginFormValues) => {
-    try {
-      const res = await axios.post("/api/auth/login", data);
-      const role = res.data.user.role;
+const onSubmit = async (data: LoginFormValues) => {
+  try {
+    const res = await axios.post("/api/auth/login", data);
+    const role = res.data.user.role;
 
-      toast.success("Login berhasil");
+    toast.success("Login berhasil");
 
-      // Redirect sesuai role
-      if (role === "ADMIN") {
-        router.push("/admin/dashboard");
-      } else if (role === "SISWA") {
-        router.push("/siswa/dashboard");
-      } else {
-        toast.error("Role tidak dikenali");
-      }
-    } catch (error: any) {
-      const message = error.response?.data?.message || "Gagal login";
-      toast.error(message);
+    // Use window.location for full page reload to ensure middleware runs properly
+    if (role === "ADMIN") {
+      window.location.href = "/admin/dashboard";
+    } else if (role === "SISWA") {
+      window.location.href = "/siswa/dashboard";
+    } else {
+      toast.error("Role tidak dikenali");
     }
-  };
+  } catch (error: any) {
+    const message = error.response?.data?.message || "Gagal login";
+    toast.error(message);
+  }
+};
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-muted">
