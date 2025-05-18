@@ -15,7 +15,7 @@ export interface AuthUser extends JwtPayload {
 
 export async function getUserFromCookie(): Promise<AuthUser | null> {
   const cookieStore = await cookies();
-  const token = cookieStore.get("auth_token")?.value;
+  const token = cookieStore.get("token")?.value;
   if (!token) return null;
 
   try {
