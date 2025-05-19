@@ -117,21 +117,21 @@ export const navByRole: Record<Role, NavSection[]> = {
                 },
             ],
         },
-        {
-            title: "Perhitungan",
-            items: [
-                {
-                    title: "Perhitungan Promethee",
-                    href: "/admin/promote-students",
-                    icon: React.createElement(GraduationCap, { className: "h-4 w-4" }),
-                },
-                {
-                    title: "Hasil Perhitungan",
-                    href: "/admin/students-scores-recap",
-                    icon: React.createElement(ChartBar, { className: "h-4 w-4" }),
-                }
-            ],
-        },
+        // {
+        //     title: "Perhitungan",
+        //     items: [
+        //         {
+        //             title: "Perhitungan Promethee",
+        //             href: "/admin/promote-students",
+        //             icon: React.createElement(GraduationCap, { className: "h-4 w-4" }),
+        //         },
+        //         {
+        //             title: "Hasil Perhitungan",
+        //             href: "/admin/students-scores-recap",
+        //             icon: React.createElement(ChartBar, { className: "h-4 w-4" }),
+        //         }
+        //     ],
+        // },
     ],
     SISWA: [
         {

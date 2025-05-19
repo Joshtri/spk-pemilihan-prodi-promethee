@@ -103,7 +103,7 @@ export function CreateOrEditKriteriaDialog({
             label="Nama Kriteria"
             placeholder="Masukkan nama kriteria"
             required
-            // control={control}
+            control={control }
             rules={{ required: "Wajib diisi" }}
             error={errors.nama_kriteria?.message}
           />
@@ -114,7 +114,7 @@ export function CreateOrEditKriteriaDialog({
             placeholder="Contoh: 0.2"
             required
             type="number"
-            // control={control}
+            control={control}
             rules={{
               required: "Bobot wajib diisi",
               min: { value: 0, message: "Tidak boleh negatif" },
@@ -127,7 +127,7 @@ export function CreateOrEditKriteriaDialog({
             type="textarea"
             label="Keterangan"
             placeholder="Opsional"
-            // control={control}
+            control={control }
             error={errors.keterangan?.message}
           />
           <div className="flex justify-end gap-2 pt-2">

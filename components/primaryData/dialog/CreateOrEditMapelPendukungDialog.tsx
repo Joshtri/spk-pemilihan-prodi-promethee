@@ -119,6 +119,7 @@ export function CreateOrEditMapelPendukungDialog({
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 mt-4">
           <FormField
+          control={control}
             name="programStudiId"
             type="select"
              label="Program Studi"
@@ -126,6 +127,7 @@ export function CreateOrEditMapelPendukungDialog({
             options={programStudiOptions}
           />
           <FormField
+          control={control}
             name="nama_mata_pelajaran"
              label="Nama Mata Pelajaran"
             placeholder="Contoh: Biologi"

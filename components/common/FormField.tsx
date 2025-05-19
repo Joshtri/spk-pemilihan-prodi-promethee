@@ -159,13 +159,14 @@ interface FormFieldProps<TFieldValues extends FieldValues = FieldValues>
   required?: boolean;
   options?: SelectOption[];
   error?: string;
+  
   disabled?: boolean;
   className?: string;
   min?: number;
   max?: number;
   step?: number;
   rows?: number;
-  control?: Control<TFieldValues>;
+  control: Control<any>
   register?: UseFormRegister<TFieldValues>;
   rules?: RegisterOptions;
   helperText?: string;

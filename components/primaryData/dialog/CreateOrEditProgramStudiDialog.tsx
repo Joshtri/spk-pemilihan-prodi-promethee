@@ -80,7 +80,7 @@ export function CreateOrEditProgramStudiDialog({
           value: item.id,
           label: item.nama,
         }));
-        
+
         setRumpunIlmuOptions(rumpunOptions);
       } catch (error) {
         console.error("Failed to fetch rumpun ilmu:", error);
@@ -180,7 +180,8 @@ export function CreateOrEditProgramStudiDialog({
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 mt-4">
           <FormField
             name="nama_program_studi"
-             label="Nama Program Studi"
+            label="Nama Program Studi"
+            control={control}
             placeholder="Contoh: Ilmu Komputer"
             rules={{
               required: "Nama program studi wajib diisi",
@@ -193,8 +194,9 @@ export function CreateOrEditProgramStudiDialog({
 
           <FormField
             name="biaya_kuliah"
-             label="Biaya Kuliah (per semester)"
+            label="Biaya Kuliah (per semester)"
             type="currency"
+            control={control}
             placeholder="Contoh: 15.000.000"
             rules={{
               required: "Biaya kuliah wajib diisi",
@@ -209,8 +211,9 @@ export function CreateOrEditProgramStudiDialog({
 
           <FormField
             name="akreditasi"
-             label="Akreditasi"
+            label="Akreditasi"
             type="select"
+            control={control}
             placeholder="Pilih akreditasi"
             options={[
               { label: "Unggul / A", value: "A" },
@@ -225,6 +228,7 @@ export function CreateOrEditProgramStudiDialog({
             name="rumpunIlmuId"
             label="Rumpun Ilmu"
             type="select"
+            control={control}
             placeholder={
               isLoadingRumpunIlmu
                 ? "Memuat data rumpun ilmu..."
@@ -237,9 +241,10 @@ export function CreateOrEditProgramStudiDialog({
 
           <FormField
             name="keterangan"
-             label="Keterangan (opsional)"
+            label="Keterangan (opsional)"
             placeholder="Keterangan tambahan"
             type="textarea"
+            control={control}
             rows={3}
             rules={{
               maxLength: {

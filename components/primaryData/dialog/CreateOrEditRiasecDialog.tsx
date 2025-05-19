@@ -148,9 +148,10 @@ export function CreateOrEditRiasecDialog({
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 mt-4">
           <FormField
+            control={control}
             name="programStudiId"
             type="select"
-             label="Program Studi"
+            label="Program Studi"
             placeholder="Pilih program studi"
             options={programStudiOptions}
             rules={{ required: "Program studi wajib dipilih" }}
@@ -158,9 +159,10 @@ export function CreateOrEditRiasecDialog({
           />
 
           <FormField
+            control={control}
             name="tipeRiasec"
             type="multiselect" // Changed to multiselect
-             label="Tipe RIASEC"
+            label="Tipe RIASEC"
             placeholder="Pilih tipe kepribadian"
             options={riasecOptions}
             rules={{

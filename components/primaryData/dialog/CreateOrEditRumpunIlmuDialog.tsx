@@ -89,6 +89,7 @@ export function CreateOrEditRumpunIlmuDialog({
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 mt-4">
           <FormField
+          control={control}
             type="text"
             name="nama"
             label="Nama Rumpun Ilmu"
