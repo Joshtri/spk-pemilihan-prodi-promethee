@@ -22,7 +22,7 @@ import { CreateOrEditRiasecDialog } from "@/components/primaryData/dialog/Create
 
 interface RiasecMap {
   id: string;
-  tipeRiasec: string;
+  tipeRiasec: string[]; // ubah dari string ke array
   programStudi: {
     id: string;
     nama_program_studi: string;
@@ -37,7 +37,12 @@ export default function RiasecPage() {
   const fetchData = async () => {
     try {
       const res = await axios.get("/api/riasec");
-      setData(res.data?.data || []);
+      setData(
+        (res.data?.data || []).map((item: any) => ({
+          ...item,
+          tipeRiasec: item.tipeRiasec?.split(",") ?? [],
+        }))
+      );
     } catch (err) {
       console.error("Gagal mengambil data RIASEC:", err);
       toast.error("Gagal mengambil data RIASEC");
@@ -87,7 +92,14 @@ export default function RiasecPage() {
             <TableBody>
               {data.map((item) => (
                 <TableRow key={item.id}>
-                  <TableCell>{item.programStudi.nama_program_studi}</TableCell>
+                  <TableCell>
+                    {item.programStudi?.nama_program_studi ?? (
+                      <span className="italic text-muted-foreground">
+                        Program studi dihapus
+                      </span>
+                    )}
+                  </TableCell>
+
                   <TableCell>{item.tipeRiasec}</TableCell>
                   <TableCell>
                     <TableActions
@@ -97,7 +109,7 @@ export default function RiasecPage() {
                           initialValues={{
                             id: item.id,
                             programStudiId: item.programStudiId,
-                            tipeRiasec: [item.tipeRiasec],
+                            tipeRiasec: item.tipeRiasec, // langsung array dari backend yang sudah di-split
                           }}
                           trigger={
                             <DialogTrigger asChild>
@@ -113,7 +125,12 @@ export default function RiasecPage() {
                         />
                       }
                       onDelete={{
-                        message: `Hapus mapping RIASEC "${item.tipeRiasec}" dari prodi "${item.programStudi.nama_program_studi}"?`,
+                        message: `Hapus mapping RIASEC "${
+                          item.tipeRiasec
+                        }" dari prodi "${
+                          item.programStudi?.nama_program_studi ??
+                          "yang telah dihapus"
+                        }"?`,
                         onConfirm: async () => {
                           await axios.delete(`/api/riasec/${item.id}`);
                           toast.success("Mapping berhasil dihapus");

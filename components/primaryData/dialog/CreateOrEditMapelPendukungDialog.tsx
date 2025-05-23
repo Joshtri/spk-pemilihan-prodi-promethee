@@ -13,6 +13,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { MataPelajaranEnum } from "@/enums/common";
 
 interface Props {
   mode: "create" | "edit";
@@ -52,6 +53,13 @@ export function CreateOrEditMapelPendukungDialog({
       nama_mata_pelajaran: "",
     },
   });
+
+  const mataPelajaranOptions = Object.entries(MataPelajaranEnum).map(
+    ([key, value]) => ({
+      value,
+      label: value,
+    })
+  );
 
   useEffect(() => {
     const fetchProdi = async () => {
@@ -119,18 +127,27 @@ export function CreateOrEditMapelPendukungDialog({
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 mt-4">
           <FormField
-          control={control}
+            control={control}
             name="programStudiId"
             type="select"
-             label="Program Studi"
+            label="Program Studi"
             placeholder="Pilih program studi"
             options={programStudiOptions}
           />
-          <FormField
+          {/* <FormField
           control={control}
             name="nama_mata_pelajaran"
              label="Nama Mata Pelajaran"
             placeholder="Contoh: Biologi"
+          /> */}
+
+          <FormField
+            control={control}
+            name="nama_mata_pelajaran"
+            type="select"
+            label="Nama Mata Pelajaran"
+            placeholder="Pilih mata pelajaran"
+            options={mataPelajaranOptions}
           />
 
           <Button type="submit" disabled={isSubmitting}>

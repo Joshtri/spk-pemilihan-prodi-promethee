@@ -64,13 +64,13 @@ model MataPelajaranPendukung {
 
 model ProgramStudiRiasec {
   id             String   @id @default(uuid()) @db.VarChar(80)
-  programStudiId String   @db.VarChar(80)
+  programStudiId String?   @db.VarChar(80)
   tipeRiasec     String
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
   // Relations
-  programStudi ProgramStudi @relation(fields: [programStudiId], references: [id])
+  programStudi ProgramStudi? @relation(fields: [programStudiId], references: [id])
 }
 
 model Kriteria {
