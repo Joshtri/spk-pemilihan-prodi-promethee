@@ -44,7 +44,7 @@ export default function LoginPage() {
   const {
     handleSubmit,
     control,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = form;
 
 const onSubmit = async (data: LoginFormValues) => {
@@ -150,8 +150,8 @@ const onSubmit = async (data: LoginFormValues) => {
               />
             </CardContent>
             <CardFooter className="flex flex-col gap-2 mt-7">
-              <Button type="submit" className="w-full">
-                Masuk
+              <Button type="submit" className="w-full" disabled={isSubmitting}>
+                {isSubmitting ? "Loading..." : "Masuk"}
               </Button>
               <p className="text-xs text-muted-foreground text-center">
                 Sistem Pendukung Keputusan Pemilihan Program Studi
