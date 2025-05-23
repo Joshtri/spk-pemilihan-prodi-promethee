@@ -2,7 +2,7 @@ import { NextResponse, NextRequest } from "next/server";
 import prisma from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { cookies } from "next/headers";
+import { serialize } from "cookie"; // npm install cookie
 
 interface LoginRequestBody {
   email: string;
@@ -22,9 +22,9 @@ export async function POST(request: NextRequest) {
     const { email, password } = body;
 
     if (!email || !password) {
-      return NextResponse.json(
-        { message: "Missing email or password" },
-        { status: 400 }
+      return new NextResponse(
+        JSON.stringify({ message: "Missing email or password" }),
+        { status: 400, headers: { "Content-Type": "application/json" } }
       );
     }
 
@@ -39,18 +39,10 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    if (!user) {
-      return NextResponse.json(
-        { message: "Invalid email or password" },
-        { status: 401 }
-      );
-    }
-
-    const passwordMatch = await bcrypt.compare(password, user.password);
-    if (!passwordMatch) {
-      return NextResponse.json(
-        { message: "Invalid email or password" },
-        { status: 401 }
+    if (!user || !(await bcrypt.compare(password, user.password))) {
+      return new NextResponse(
+        JSON.stringify({ message: "Invalid email or password" }),
+        { status: 401, headers: { "Content-Type": "application/json" } }
       );
     }
 
@@ -60,13 +52,12 @@ export async function POST(request: NextRequest) {
       expiresIn: "24h",
     });
 
-    // Update last login time
+    // Update login time & log activity
     await prisma.user.update({
       where: { id: user.id },
       data: { lastLoginAt: new Date() },
     });
 
-    // Create login activity log
     await prisma.log.create({
       data: {
         userId: user.id,
@@ -79,27 +70,31 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Set secure auth cookie
-    const response = NextResponse.json({
-      user: userData,
-      token,
-    });
-
-    response.cookies.set("token", token, {
+    // Serialize cookie
+    const serialized = serialize("token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
-      maxAge: 60 * 60 * 24,
+      maxAge: 60 * 60 * 24, // 1 day
       path: "/",
     });
 
-
-    return response;
+    // Return JSON + Set-Cookie header manually
+    return new NextResponse(
+      JSON.stringify({ user: userData }),
+      {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json",
+          "Set-Cookie": serialized,
+        },
+      }
+    );
   } catch (error) {
-    console.error("Error during login:", error);
-    return NextResponse.json(
-      { message: "Login failed. Please try again later." },
-      { status: 500 }
+    console.error("Login error:", error);
+    return new NextResponse(
+      JSON.stringify({ message: "Login failed. Please try again later." }),
+      { status: 500, headers: { "Content-Type": "application/json" } }
     );
   }
 }

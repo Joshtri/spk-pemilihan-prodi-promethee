@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import axios from "axios";
@@ -47,26 +47,46 @@ export default function LoginPage() {
     formState: { errors, isSubmitting },
   } = form;
 
-const onSubmit = async (data: LoginFormValues) => {
-  try {
-    const res = await axios.post("/api/auth/login", data);
-    const role = res.data.user.role;
+  const onSubmit = async (data: LoginFormValues) => {
+    try {
+      const res = await axios.post("/api/auth/login", data);
+      const role = res.data.user.role;
 
-    toast.success("Login berhasil");
+      toast.success("Login berhasil");
 
-    // Use window.location for full page reload to ensure middleware runs properly
-    if (role === "ADMIN") {
-      window.location.href = "/admin/dashboard";
-    } else if (role === "SISWA") {
-      window.location.href = "/siswa/dashboard";
-    } else {
-      toast.error("Role tidak dikenali");
+      // Use window.location for full page reload to ensure middleware runs properly
+      if (role === "ADMIN") {
+        window.location.href = "/admin/dashboard";
+      } else if (role === "SISWA") {
+        window.location.href = "/siswa/dashboard";
+      } else {
+        toast.error("Role tidak dikenali");
+      }
+    } catch (error: any) {
+      const message = error.response?.data?.message || "Gagal login";
+      toast.error(message);
     }
-  } catch (error: any) {
-    const message = error.response?.data?.message || "Gagal login";
-    toast.error(message);
-  }
-};
+  };
+
+  useEffect(() => {
+    const checkSession = async () => {
+      try {
+        const res = await axios.get("/api/auth/me");
+        const role = res.data.user.role;
+
+        if (role === "ADMIN") {
+          router.replace("/admin/dashboard");
+        } else if (role === "SISWA") {
+          router.replace("/siswa/dashboard");
+        }
+      } catch (err) {
+        // Tidak ada session aktif, lanjut tampilkan halaman login
+        console.log("Belum login, tetap di halaman login");
+      }
+    };
+
+    checkSession();
+  }, [router]);
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-muted">

@@ -16,10 +16,31 @@ export async function middleware(req: NextRequest) {
   console.log("➡️ MIDDLEWARE | token:", token.substring(0, 20) + "...");
 
   // Public route → tidak perlu cek token
+  // Public path hanya untuk halaman login, register, dan unauthorized
   const publicPaths = ["/", "/login", "/register", "/unauthorized"];
-  if (publicPaths.some((p) => path === p || path.startsWith(p))) {
+  const isPublicPath = publicPaths.some((p) => path === p || path.startsWith(p));
+
+  if (isPublicPath) {
+    // Jika user sudah login, redirect ke dashboard sesuai role
+    if (token) {
+      try {
+        const { payload } = await jwtVerify(token, getJwtSecret());
+        const role = payload.role;
+
+        if (path === "/" || path === "/login") {
+          const redirectTo =
+            role === "ADMIN" ? "/admin/dashboard" : "/siswa/dashboard";
+          return NextResponse.redirect(new URL(redirectTo, req.url));
+        }
+      } catch (err) {
+        // Token invalid → lanjut saja ke public route
+        console.warn("Token invalid di public path, lanjut ke halaman:", path);
+      }
+    }
+
     return NextResponse.next();
   }
+
 
   // Token tidak ada
   if (!token) {
@@ -55,5 +76,7 @@ export async function middleware(req: NextRequest) {
 
 
 export const config = {
-  matcher: ['/siswa/:path*', '/admin/:path*', '/dashboard', '/profile'],
+  matcher: [
+    "/((?!_next/static|_next/image|favicon.ico).*)",
+  ],
 };
