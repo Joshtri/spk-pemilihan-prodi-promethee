@@ -132,8 +132,9 @@ export function CreateOrEditSubKriteriaDialog({
             name="kriteriaId"
             label="Kriteria"
             type="select"
+            control={control}
             required
-             options={kriteriaOptions}
+            options={kriteriaOptions}
             rules={{ required: "Kriteria wajib dipilih" }}
             error={errors.kriteriaId?.message}
           />
@@ -142,26 +143,28 @@ export function CreateOrEditSubKriteriaDialog({
             label="Nama Sub Kriteria"
             placeholder="Masukkan nama sub kriteria"
             required
-             rules={{ required: "Nama sub kriteria wajib diisi" }}
+            control={control}
+            rules={{ required: "Nama sub kriteria wajib diisi" }}
             error={errors.nama_sub_kriteria?.message}
           />
           <FormField
             name="bobot_sub_kriteria"
             type="number"
+            control={control}
             label="Bobot Sub Kriteria"
             placeholder="Contoh: 0.3"
             required
-             rules={{ required: "Bobot wajib diisi" }}
+            rules={{ required: "Bobot wajib diisi" }}
             error={errors.bobot_sub_kriteria?.message}
           />
 
           <FormField
-          name="keterangan"
-          label="Keterangan"
-          placeholder="Masukkan keterangan"
-           required={false}
-          error={errors.keterangan?.message}
-
+            name="keterangan"
+            label="Keterangan"
+            control={control}
+            placeholder="Masukkan keterangan"
+            required={false}
+            error={errors.keterangan?.message}
           />
           <div className="flex justify-end gap-2 pt-2">
             <Button
