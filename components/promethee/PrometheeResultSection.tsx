@@ -177,8 +177,16 @@ export function PrometheeResultSection({
                                 {crit.name}
                               </TableCell>
                               <TableCell>{crit.subName || "-"}</TableCell>
-                              <TableCell>{formatFlow(crit.value)}</TableCell>
-                              <TableCell>{formatFlow(crit.weight)}</TableCell>
+                              <TableCell>
+                                {crit.value != null
+                                  ? Math.round(crit.value)
+                                  : "-"}
+                              </TableCell>
+                              <TableCell>
+                                {crit.weight != null
+                                  ? Math.round(crit.weight)
+                                  : "-"}
+                              </TableCell>
                             </TableRow>
                           ))}
                         </TableBody>

@@ -122,7 +122,10 @@ export async function runPrometheePreview(userId: string, programStudiIds: strin
                     value: item.nilai,
                     weight: item.bobot,
                     subName: subKriteriaList.find((s) => s.id === item.subKriteriaId)?.nama_sub_kriteria ?? "-",
+                    kriteriaId: item.kriteriaId,
+                    subKriteriaId: item.subKriteriaId,
                 })),
+
             leavingFlow: Number.isFinite(leavingFlows[i]) ? leavingFlows[i] : 0,
             enteringFlow: Number.isFinite(enteringFlows[i]) ? enteringFlows[i] : 0,
             netFlow: Number.isFinite(netFlows[i].netFlow) ? netFlows[i].netFlow : 0,

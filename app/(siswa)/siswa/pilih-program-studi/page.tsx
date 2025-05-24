@@ -236,10 +236,37 @@ export default function PilihProgramStudiPage() {
       </div>
 
       {showResults && rankingData && (
-        <PrometheeResultSection
-          hasilRanking={rankingData.data}
-          calculationDetails={rankingData.details}
-        />
+        <>
+          <PrometheeResultSection
+            hasilRanking={rankingData.data}
+            calculationDetails={rankingData.details}
+          />
+
+          <div className="mt-6 flex justify-end">
+            <Button
+              variant="default"
+              onClick={async () => {
+                try {
+                  const res = await axios.post("/api/promethee/save", {
+                    details: rankingData.details, // langsung kirim seluruh details
+                  });
+
+                  toast.success("Berhasil menyimpan hasil rekomendasi!", {
+                    description: `Disimpan sebanyak ${res.data.count} entri.`,
+                  });
+                } catch (err: any) {
+                  toast.error("Gagal menyimpan hasil", {
+                    description:
+                      err.response?.data?.message ||
+                      "Terjadi kesalahan saat menyimpan.",
+                  });
+                }
+              }}
+            >
+              Simpan Hasil Rekomendasi
+            </Button>
+          </div>
+        </>
       )}
     </div>
   );
