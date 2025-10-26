@@ -42,8 +42,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-
-          <div className="flex h-full overflow-hidden bg-background">
+          <div className="flex h-screen overflow-hidden bg-background">
             {/* Sidebar */}
             <AppSidebar
               role="ADMIN"
@@ -54,9 +53,9 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             />
 
             {/* Main content area */}
-            <div className="flex flex-1 flex-col overflow-hidden">
+            <div className="flex flex-1 flex-col overflow-hidden min-w-0">
               <AppHeader role="ADMIN" onMenuClick={toggleSidebar} />
-              <main className="flex-1 overflow-auto p-4 md:p-6">
+              <main className="flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-6">
                 {children}
               </main>
             </div>

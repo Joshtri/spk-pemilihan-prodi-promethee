@@ -73,7 +73,23 @@ export async function DELETE(req: NextRequest): Promise<NextResponse<UserRespons
   }
 
   try {
-    await prisma.user.delete({ where: { id } });
+    // Delete all related records first to avoid foreign key constraint errors
+    await prisma.$transaction([
+      // Delete Log records
+      prisma.log.deleteMany({ where: { userId: id } }),
+      // Delete NilaiAkademik records
+      prisma.nilaiAkademikSiswa.deleteMany({ where: { userId: id } }),
+      // Delete TesMinat records
+      prisma.tesMinatSiswa.deleteMany({ where: { userId: id } }),
+      // Delete HasilPerhitungan records
+      prisma.hasilPerhitungan.deleteMany({ where: { userId: id } }),
+      // Delete EvaluasiKriteria records
+      prisma.evaluasiKriteria.deleteMany({ where: { userId: id } }),
+      // Delete PilihanProgramStudi records
+      prisma.pilihanProgramStudi.deleteMany({ where: { userId: id } }),
+      // Finally delete the user
+      prisma.user.delete({ where: { id } }),
+    ]);
     return NextResponse.json({ success: true, message: "User deleted" });
   } catch (error: unknown) {
     console.error("DELETE /users/[id] error:", error);

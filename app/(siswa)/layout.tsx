@@ -6,6 +6,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { useEffect, useState, ReactNode } from "react";
 import "../globals.css";
 import { AppSidebar } from "@/components/partials/AppSidebar";
+import { ReactQueryProvider } from "@/providers/query-client-provider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -44,22 +45,26 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <div className="flex h-full overflow-hidden bg-background">
-          {/* Sidebar */}
-          <AppSidebar
-            role="SISWA"
-            isOpen={isSidebarOpen}
-            onToggleSidebar={toggleSidebar}
-            isMobile={isMobile}
-            onClose={() => setIsSidebarOpen(false)}
-          />
+        <ReactQueryProvider>
+          <div className="flex h-screen overflow-hidden bg-background">
+            {/* Sidebar */}
+            <AppSidebar
+              role="SISWA"
+              isOpen={isSidebarOpen}
+              onToggleSidebar={toggleSidebar}
+              isMobile={isMobile}
+              onClose={() => setIsSidebarOpen(false)}
+            />
 
-          {/* Main content area */}
-          <div className="flex flex-1 flex-col overflow-hidden">
-            <AppHeader role="SISWA" onMenuClick={toggleSidebar} />
-            <main className="flex-1 overflow-auto p-4 md:p-6">{children}</main>
+            {/* Main content area */}
+            <div className="flex flex-1 flex-col overflow-hidden min-w-0">
+              <AppHeader role="SISWA" onMenuClick={toggleSidebar} />
+              <main className="flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-6">
+                {children}
+              </main>
+            </div>
           </div>
-        </div>
+        </ReactQueryProvider>
       </body>
     </html>
   );

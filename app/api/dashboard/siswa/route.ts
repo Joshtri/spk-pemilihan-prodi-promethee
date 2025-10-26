@@ -20,13 +20,21 @@ export async function GET() {
             prisma.hasilPerhitungan.findMany({
                 where: { userId },
                 include: {
-                    programStudi: true,
+                    programStudi: {
+                        include: {
+                            RumpunIlmu: true,
+                        }
+                    },
                 },
             }),
             prisma.pilihanProgramStudi.findMany({
                 where: { userId },
                 include: {
-                    programStudi: true,
+                    programStudi: {
+                        include: {
+                            RumpunIlmu: true,
+                        }
+                    },
                 },
                 orderBy: { createdAt: "asc" },
             }),
@@ -35,16 +43,49 @@ export async function GET() {
         // Hitung rata-rata nilai akademik
         const averageScore =
             nilaiAkademik.length > 0
-                ? nilaiAkademik.reduce((sum, n) => sum + n.nilai, 0) / nilaiAkademik.length
+                ? Math.round(nilaiAkademik.reduce((sum, n) => sum + n.nilai, 0) / nilaiAkademik.length)
                 : 0;
 
-        // Ambil skor tertinggi dari hasil perhitungan
-        const topMatch = hasilPerhitungan.sort((a, b) => b.nilai - a.nilai)[0];
+        // Aggregate hasil perhitungan by program studi
+        const programStudiScores: Record<string, {
+            sum: number;
+            count: number;
+            programStudi: any
+        }> = {};
 
-        // Hitung distribusi rumpun ilmu dari hasil perhitungan
-        const rumpunIlmuCount: Record<string, number> = {};
         hasilPerhitungan.forEach((h) => {
-            const rumpun = h.programStudi?.rumpunIlmuId || "Lainnya";
+            const prodiId = h.programStudiId;
+            if (!programStudiScores[prodiId]) {
+                programStudiScores[prodiId] = {
+                    sum: 0,
+                    count: 0,
+                    programStudi: h.programStudi,
+                };
+            }
+            programStudiScores[prodiId].sum += h.nilai;
+            programStudiScores[prodiId].count += 1;
+        });
+
+        // Convert to array and calculate average match score
+        const rekomendasiProdi = Object.entries(programStudiScores)
+            .map(([prodiId, data]) => ({
+                id: prodiId,
+                name: data.programStudi.nama_program_studi,
+                akreditasi: data.programStudi.akreditasi,
+                biaya: `Rp ${(data.programStudi.biaya_kuliah / 1000000).toFixed(1)}jt/semester`,
+                biaya_kuliah: data.programStudi.biaya_kuliah,
+                match: Math.round((data.sum / data.count) * 100) / 100, // Match score sebagai persentase
+                rumpunIlmu: data.programStudi.RumpunIlmu?.nama || "Lainnya",
+            }))
+            .sort((a, b) => b.match - a.match); // Sort by match descending
+
+        // Ambil skor tertinggi
+        const topMatch = rekomendasiProdi[0] || null;
+
+        // Hitung distribusi rumpun ilmu dari rekomendasi
+        const rumpunIlmuCount: Record<string, number> = {};
+        rekomendasiProdi.forEach((prodi) => {
+            const rumpun = prodi.rumpunIlmu;
             rumpunIlmuCount[rumpun] = (rumpunIlmuCount[rumpun] || 0) + 1;
         });
 
@@ -55,7 +96,7 @@ export async function GET() {
         return NextResponse.json({
             nilaiAkademik,
             tesMinat,
-            hasilPerhitungan,
+            hasilPerhitungan: rekomendasiProdi, // Return aggregated data
             pilihanProdi,
             averageScore,
             topMatch,

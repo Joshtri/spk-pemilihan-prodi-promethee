@@ -81,7 +81,7 @@ export default function AppHeader({ onMenuClick, role }: AppHeaderProps) {
 
       {/* Right */}
       <div className="flex items-center gap-2 md:gap-4 pr-1">
-        <Button
+        {/* <Button
           variant="ghost"
           size="icon"
           onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
@@ -92,7 +92,7 @@ export default function AppHeader({ onMenuClick, role }: AppHeaderProps) {
             <Moon className="h-5 w-5" />
           )}
           <span className="sr-only">Toggle Dark Mode</span>
-        </Button>
+        </Button> */}
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
