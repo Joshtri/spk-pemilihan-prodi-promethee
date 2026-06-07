@@ -2,6 +2,13 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
+/** Return sub-kriteria for a given kriteria sorted by bobot DESC (best → worst). */
+function sortedSubs(subKriteriaList: any[], kriteriaId: string) {
+    return subKriteriaList
+        .filter((s) => s.kriteriaId === kriteriaId)
+        .sort((a, b) => b.bobot_sub_kriteria - a.bobot_sub_kriteria);
+}
+
 export async function evaluateCriteriaMapping(userId: string, programStudiIds: string[]) {
     const [tesMinat, nilaiAkademik, programStudiList, subKriteriaList, kriteriaList] =
         await Promise.all([
@@ -17,10 +24,10 @@ export async function evaluateCriteriaMapping(userId: string, programStudiIds: s
 
     const tesMinatTypes = tesMinat.map((t) => t.tipe);
 
-    const minatKriteria = kriteriaList.find((k) => k.nama_kriteria === "Minat");
-    const akademikKriteria = kriteriaList.find((k) => k.nama_kriteria === "Nilai Akademik");
-    const biayaKriteria = kriteriaList.find((k) => k.nama_kriteria === "Biaya Kuliah");
-    const akreditasiKriteria = kriteriaList.find((k) => k.nama_kriteria === "Akreditasi Progam Studi");
+    const minatKriteria     = kriteriaList.find((k) => k.nama_kriteria === "Minat");
+    const akademikKriteria  = kriteriaList.find((k) => k.nama_kriteria === "Nilai Akademik");
+    const biayaKriteria     = kriteriaList.find((k) => k.nama_kriteria === "Biaya Kuliah");
+    const akreditasiKriteria = kriteriaList.find((k) => k.nama_kriteria === "Akreditasi Program Studi");
 
     const results: {
         programStudiId: string;
@@ -32,7 +39,7 @@ export async function evaluateCriteriaMapping(userId: string, programStudiIds: s
         subName: string;
     }[] = [];
 
-    function pushResult(psId: string, kriteria, sub) {
+    function pushResult(psId: string, kriteria: any, sub: any) {
         results.push({
             programStudiId: psId,
             kriteriaId: kriteria.id,
@@ -45,184 +52,82 @@ export async function evaluateCriteriaMapping(userId: string, programStudiIds: s
     }
 
     for (const ps of programStudiList) {
-        // --- Minat ---
-        if (minatKriteria) {
-            const riasecTypesProdi = ps.riasec.flatMap((r) =>
-                r.tipeRiasec.split(",").map((t) => t.trim().toUpperCase())
-            );
 
+        // --- Minat ---
+        // DB codes (sorted by bobot DESC): SM1(5) > SM2(3) > SM3(1)
+        // matchCount >= 2 → rank 0 (best), == 1 → rank 1, == 0 → rank 2 (worst)
+        if (minatKriteria) {
+            const riasecTypesProdi = ps.riasec.flatMap((r: any) =>
+                r.tipeRiasec.split(",").map((t: string) => t.trim().toUpperCase())
+            );
             const tesMinatTypesClean = tesMinatTypes.flatMap((t) =>
                 t.split(",").map((x) => x.trim().toUpperCase())
             );
-
-            const matchedTypes = riasecTypesProdi.filter((t) =>
+            const matchCount = riasecTypesProdi.filter((t: string) =>
                 tesMinatTypesClean.includes(t)
-            );
+            ).length;
 
-            const matchCount = matchedTypes.length;
+            const minatSubs = sortedSubs(subKriteriaList, minatKriteria.id);
+            const idx = matchCount >= 2 ? 0 : matchCount === 1 ? 1 : minatSubs.length - 1;
+            const sub = minatSubs[Math.min(idx, minatSubs.length - 1)];
+            if (sub) pushResult(ps.id, minatKriteria, sub);
 
-            let minatSub = "";
-            if (matchCount >= 2) {
-                // semua 2 atau lebih dianggap cocok
-                minatSub = "Lebih Dari 2 Tipe Cocok";
-            } else if (matchCount === 1) {
-                minatSub = "1 Tipe Cocok";
-            } else {
-                minatSub = "Tidak Ada Yang Cocok";
-            }
-
-
-            const sub = subKriteriaList.find(
-                (s) => s.kriteriaId === minatKriteria.id && s.nama_sub_kriteria === minatSub
-            );
-
-            if (sub) {
-                results.push({
-                    programStudiId: ps.id,
-                    kriteriaId: minatKriteria.id,
-                    subKriteriaId: sub.id,
-                    nilai: sub.bobot_sub_kriteria,
-                    criteriaName: minatKriteria.nama_kriteria,
-                    bobot: minatKriteria.bobot_kriteria,
-                    subName: sub.nama_sub_kriteria,
-                });
-            }
-
-            // debug log
-            console.log({
-                prodi: ps.nama_program_studi,
-                prodiTypes: riasecTypesProdi,
-                userMinat: tesMinatTypesClean,
-                matchedTypes,
-                matchCount,
-                selectedSub: minatSub,
-            });
+            console.log({ prodi: ps.nama_program_studi, riasecTypesProdi, tesMinatTypesClean, matchCount, selectedSub: sub?.nama_sub_kriteria });
         }
 
         // --- Nilai Akademik ---
+        // DB codes (sorted by bobot DESC): NA1(5) > NA2(4) > NA3(3) > NA4(2) > NA5(1)
+        // Score >= 90 → rank 0, 80–89 → 1, 70–79 → 2, 60–69 → 3, <60 → 4
         if (akademikKriteria) {
             const mapelPs = await prisma.mataPelajaranPendukung.findFirst({
                 where: { programStudiId: ps.id },
             });
-
             const namaMapel = mapelPs?.nama_mata_pelajaran;
+            const nilaiSiswa = nilaiAkademik.find((n) => n.pelajaran === namaMapel);
+            const score = nilaiSiswa?.nilai ?? 0;
 
-            const nilaiAkademikSiswa = nilaiAkademik.find((n) => n.pelajaran === namaMapel);
-            const nilai = nilaiAkademikSiswa?.nilai ?? 0;
+            const akademikSubs = sortedSubs(subKriteriaList, akademikKriteria.id);
+            const idx = score >= 90 ? 0 : score >= 80 ? 1 : score >= 70 ? 2 : score >= 60 ? 3 : akademikSubs.length - 1;
+            const sub = akademikSubs[Math.min(idx, akademikSubs.length - 1)];
+            if (sub) pushResult(ps.id, akademikKriteria, sub);
 
-            const akademikSubs = subKriteriaList.filter((s) => s.kriteriaId === akademikKriteria.id);
-
-            let matchedSub: typeof akademikSubs[0] | null = null;
-
-            for (const sub of akademikSubs) {
-                const label = sub.nama_sub_kriteria;
-
-                if (/^\d{2}-\d{2}$/.test(label)) {
-                    const [min, max] = label.split("-").map(Number);
-                    if (nilai >= min && nilai <= max) {
-                        matchedSub = sub;
-                        break;
-                    }
-                }
-            }
-
-            // fallback jika nilai di bawah semua range
-            if (!matchedSub && akademikSubs.length > 0) {
-                matchedSub = akademikSubs.reduce((lowest, current) =>
-                    current.bobot_sub_kriteria < lowest.bobot_sub_kriteria ? current : lowest
-                );
-            }
-
-            if (matchedSub) {
-                pushResult(ps.id, akademikKriteria, matchedSub);
-
-                // debug
-                console.log({
-                    prodi: ps.nama_program_studi,
-                    mapel: namaMapel,
-                    nilai,
-                    selectedSub: matchedSub.nama_sub_kriteria,
-                });
-            }
+            console.log({ prodi: ps.nama_program_studi, mapel: namaMapel, score, selectedSub: sub?.nama_sub_kriteria });
         }
 
         // --- Biaya Kuliah ---
-        // --- Biaya Kuliah ---
+        // DB codes (sorted by bobot DESC): SS1(5) > SS2(4) > SS3(3) > SS4(2) > SS5(1)
+        // Cheaper = better (higher rank). Ranges based on actual program studi distribution.
         if (biayaKriteria) {
-            const biayaSubs = subKriteriaList.filter((s) => s.kriteriaId === biayaKriteria.id);
             const biaya = ps.biaya_kuliah;
+            const biayaSubs = sortedSubs(subKriteriaList, biayaKriteria.id);
 
-            let matchedSub: typeof biayaSubs[0] | null = null;
+            let idx: number;
+            if (biaya <= 10_137_000)       idx = 0; // SS1 — cheapest
+            else if (biaya <= 15_788_000)  idx = 1; // SS2
+            else if (biaya <= 19_804_000)  idx = 2; // SS3
+            else if (biaya <= 22_273_000)  idx = 3; // SS4
+            else                           idx = biayaSubs.length - 1; // SS5 — most expensive
 
-            for (const sub of biayaSubs) {
-                const label = sub.nama_sub_kriteria.replace(/\s/g, ""); // hapus spasi
+            const sub = biayaSubs[Math.min(idx, biayaSubs.length - 1)];
+            if (sub) pushResult(ps.id, biayaKriteria, sub);
 
-                // 21.429.000–22.273.000
-                if (label.includes("–")) {
-                    const [minStr, maxStr] = label.split("–");
-                    const min = Number(minStr.replace(/\./g, ""));
-                    const max = Number(maxStr.replace(/\./g, ""));
-                    if (biaya >= min && biaya <= max) {
-                        matchedSub = sub;
-                        break;
-                    }
-                }
-                // <=10.137.000
-                else if (label.startsWith("<=")) {
-                    const max = Number(label.replace(/[^0-9]/g, ""));
-                    if (biaya <= max) {
-                        matchedSub = sub;
-                        break;
-                    }
-                }
-                // >=37.831.000
-                else if (label.startsWith(">=")) {
-                    const min = Number(label.replace(/[^0-9]/g, ""));
-                    if (biaya >= min) {
-                        matchedSub = sub;
-                        break;
-                    }
-                }
-                // 19.804.000 (exact match)
-                else {
-                    const exact = Number(label.replace(/\./g, ""));
-                    if (biaya === exact) {
-                        matchedSub = sub;
-                        break;
-                    }
-                }
-            }
-
-            // fallback ke bobot terendah jika tidak cocok
-            if (!matchedSub && biayaSubs.length > 0) {
-                matchedSub = biayaSubs.reduce((lowest, current) =>
-                    current.bobot_sub_kriteria < lowest.bobot_sub_kriteria ? current : lowest
-                );
-            }
-
-            if (matchedSub) {
-                pushResult(ps.id, biayaKriteria, matchedSub);
-
-                // debug
-                console.log({
-                    prodi: ps.nama_program_studi,
-                    biaya,
-                    selectedSub: matchedSub.nama_sub_kriteria,
-                    bobot: matchedSub.bobot_sub_kriteria,
-                });
-            }
+            console.log({ prodi: ps.nama_program_studi, biaya, selectedSub: sub?.nama_sub_kriteria });
         }
-
 
         // --- Akreditasi ---
+        // DB codes (sorted by bobot DESC): S1(4) > S2(3) > S3(2) > S4(1)
+        // A → rank 0, B → rank 1, C → rank 2, other → rank 3
         if (akreditasiKriteria) {
-            const sub = subKriteriaList.find(
-                (s) => s.kriteriaId === akreditasiKriteria.id && s.nama_sub_kriteria.includes(ps.akreditasi)
-            );
+            const akreditasiSubs = sortedSubs(subKriteriaList, akreditasiKriteria.id);
+            const grade = ps.akreditasi.trim().toUpperCase();
+            const idx = grade === "A" ? 0 : grade === "B" ? 1 : grade === "C" ? 2 : akreditasiSubs.length - 1;
+            const sub = akreditasiSubs[Math.min(idx, akreditasiSubs.length - 1)];
             if (sub) pushResult(ps.id, akreditasiKriteria, sub);
+
+            console.log({ prodi: ps.nama_program_studi, akreditasi: ps.akreditasi, selectedSub: sub?.nama_sub_kriteria });
         }
 
-        // --- Tambahkan nilai default jika tidak ditemukan ---
+        // --- Fallback: ensure every criterion has an entry (nilai 0 if not matched) ---
         for (const k of kriteriaList) {
             const alreadyMapped = results.find(
                 (r) => r.programStudiId === ps.id && r.kriteriaId === k.id

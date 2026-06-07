@@ -20,6 +20,8 @@ export interface ProgramStudiRekomendasi {
   biaya_kuliah: number;
   match: number;
   rumpunIlmu: string;
+  mataPelajaran: string[];
+  riasecTypes: string[];
 }
 
 export interface PilihanProdi {

@@ -1,20 +1,16 @@
-// route: /api/dashboard/siswa/route.ts
-
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { getUserFromCookie } from "@/utils/auth";
 
 export async function GET() {
     try {
-        // Hardcoded userId untuk sementara waktu
-        const userId = "b24db3c5-0dbc-4deb-9881-db4801245632";
+        const user = await getUserFromCookie();
+        if (!user) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
+        const userId = user.id;
 
-        // Ambil data secara paralel
-        const [
-            nilaiAkademik,
-            tesMinat,
-            hasilPerhitungan,
-            pilihanProdi,
-        ] = await Promise.all([
+        const [nilaiAkademik, tesMinat, hasilPerhitungan, pilihanProdi] = await Promise.all([
             prisma.nilaiAkademikSiswa.findMany({ where: { userId } }),
             prisma.tesMinatSiswa.findMany({ where: { userId } }),
             prisma.hasilPerhitungan.findMany({
@@ -23,7 +19,9 @@ export async function GET() {
                     programStudi: {
                         include: {
                             RumpunIlmu: true,
-                        }
+                            mataPelajaranPendukung: true,
+                            riasec: true,
+                        },
                     },
                 },
             }),
@@ -31,64 +29,67 @@ export async function GET() {
                 where: { userId },
                 include: {
                     programStudi: {
-                        include: {
-                            RumpunIlmu: true,
-                        }
+                        include: { RumpunIlmu: true },
                     },
                 },
                 orderBy: { createdAt: "asc" },
             }),
         ]);
 
-        // Hitung rata-rata nilai akademik
         const averageScore =
             nilaiAkademik.length > 0
                 ? Math.round(nilaiAkademik.reduce((sum, n) => sum + n.nilai, 0) / nilaiAkademik.length)
                 : 0;
 
-        // Aggregate hasil perhitungan by program studi
+        // Aggregate hasilPerhitungan by program studi
+        const MAX_BOBOT = 5;
         const programStudiScores: Record<string, {
             sum: number;
             count: number;
-            programStudi: any
+            programStudi: any;
+            mataPelajaran: string[];
+            riasecTypes: string[];
         }> = {};
 
         hasilPerhitungan.forEach((h) => {
             const prodiId = h.programStudiId;
             if (!programStudiScores[prodiId]) {
+                const ps = h.programStudi;
                 programStudiScores[prodiId] = {
                     sum: 0,
                     count: 0,
-                    programStudi: h.programStudi,
+                    programStudi: ps,
+                    mataPelajaran: ps.mataPelajaranPendukung?.map((m: any) => m.nama_mata_pelajaran) ?? [],
+                    riasecTypes: ps.riasec?.flatMap((r: any) =>
+                        r.tipeRiasec.split(",").map((t: string) => t.trim())
+                    ) ?? [],
                 };
             }
             programStudiScores[prodiId].sum += h.nilai;
             programStudiScores[prodiId].count += 1;
         });
 
-        // Convert to array and calculate average match score
+        // match = (avg bobot / max bobot) * 100, capped at 100
         const rekomendasiProdi = Object.entries(programStudiScores)
             .map(([prodiId, data]) => ({
                 id: prodiId,
                 name: data.programStudi.nama_program_studi,
                 akreditasi: data.programStudi.akreditasi,
-                biaya: `Rp ${(data.programStudi.biaya_kuliah / 1000000).toFixed(1)}jt/semester`,
+                biaya: `Rp ${(data.programStudi.biaya_kuliah / 1_000_000).toFixed(1)}jt/semester`,
                 biaya_kuliah: data.programStudi.biaya_kuliah,
-                match: Math.round((data.sum / data.count) * 100) / 100, // Match score sebagai persentase
+                match: Math.min(100, Math.round((data.sum / (data.count * MAX_BOBOT)) * 100)),
                 rumpunIlmu: data.programStudi.RumpunIlmu?.nama || "Lainnya",
+                mataPelajaran: data.mataPelajaran,
+                riasecTypes: data.riasecTypes,
             }))
-            .sort((a, b) => b.match - a.match); // Sort by match descending
+            .sort((a, b) => b.match - a.match);
 
-        // Ambil skor tertinggi
         const topMatch = rekomendasiProdi[0] || null;
 
-        // Hitung distribusi rumpun ilmu dari rekomendasi
         const rumpunIlmuCount: Record<string, number> = {};
-        rekomendasiProdi.forEach((prodi) => {
-            const rumpun = prodi.rumpunIlmu;
-            rumpunIlmuCount[rumpun] = (rumpunIlmuCount[rumpun] || 0) + 1;
+        rekomendasiProdi.forEach((p) => {
+            rumpunIlmuCount[p.rumpunIlmu] = (rumpunIlmuCount[p.rumpunIlmu] || 0) + 1;
         });
-
         const rumpunIlmuDistribution = Object.entries(rumpunIlmuCount).map(
             ([key, val]) => ({ name: key, value: val })
         );
@@ -96,7 +97,7 @@ export async function GET() {
         return NextResponse.json({
             nilaiAkademik,
             tesMinat,
-            hasilPerhitungan: rekomendasiProdi, // Return aggregated data
+            hasilPerhitungan: rekomendasiProdi,
             pilihanProdi,
             averageScore,
             topMatch,
@@ -104,9 +105,6 @@ export async function GET() {
         });
     } catch (error) {
         console.error("Failed to load siswa dashboard data:", error);
-        return NextResponse.json(
-            { error: "Failed to load dashboard data" },
-            { status: 500 }
-        );
+        return NextResponse.json({ error: "Failed to load dashboard data" }, { status: 500 });
     }
 }
