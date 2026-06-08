@@ -1,15 +1,23 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { toast } from "sonner";
-import { Pencil } from "lucide-react";
+import { Pencil, Search, X } from "lucide-react";
 
 import { PageHeader } from "@/components/common/PageHeader";
-import { EmptyState } from "@/components/common/EmptyState";
 import { TableActions } from "@/components/common/TableActions";
 import { DialogTrigger } from "@/components/ui/dialog";
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -18,21 +26,20 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { CreateOrEditMapelPendukungDialog } from "@/components/primaryData/dialog/CreateOrEditMapelPendukungDialog"; // pastikan path ini sesuai
+import { CreateOrEditMapelPendukungDialog } from "@/components/primaryData/dialog/CreateOrEditMapelPendukungDialog";
 import { Mapel } from "@/interfaces/Mapel";
-
-
 
 export default function MapelPendukungPage() {
   const [data, setData] = useState<Mapel[]>([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [filterProdi, setFilterProdi] = useState("all");
 
   const fetchData = async () => {
     try {
       const res = await axios.get("/api/mapel-pendukung");
       setData(res.data?.data || []);
-    } catch (err) {
-      console.error("Gagal mengambil data:", err);
+    } catch {
       toast.error("Gagal mengambil data mata pelajaran pendukung");
     } finally {
       setLoading(false);
@@ -42,6 +49,29 @@ export default function MapelPendukungPage() {
   useEffect(() => {
     fetchData();
   }, []);
+
+  // Unique program studi list for filter dropdown
+  const prodiList = useMemo(() => {
+    const map = new Map<string, string>();
+    data.forEach((item) => map.set(item.programStudi.id, item.programStudi.nama_program_studi));
+    return Array.from(map.entries())
+      .map(([id, name]) => ({ id, name }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [data]);
+
+  // Apply filters
+  const filtered = useMemo(() => {
+    return data.filter((item) => {
+      const matchProdi = filterProdi === "all" || item.programStudi.id === filterProdi;
+      const matchSearch =
+        !search.trim() ||
+        item.nama_mata_pelajaran.toLowerCase().includes(search.toLowerCase()) ||
+        item.programStudi.nama_program_studi.toLowerCase().includes(search.toLowerCase());
+      return matchProdi && matchSearch;
+    });
+  }, [data, filterProdi, search]);
+
+  const hasFilter = search.trim() || filterProdi !== "all";
 
   return (
     <div className="space-y-6">
@@ -61,28 +91,76 @@ export default function MapelPendukungPage() {
         }
       />
 
+      {/* Filter bar */}
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="relative w-full sm:max-w-xs">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Cari mata pelajaran..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-9 pr-8"
+          />
+          {search && (
+            <button
+              onClick={() => setSearch("")}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
+        </div>
+
+        <Select value={filterProdi} onValueChange={setFilterProdi}>
+          <SelectTrigger className="w-full sm:w-64">
+            <SelectValue placeholder="Filter program studi" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Semua Program Studi</SelectItem>
+            {prodiList.map((p) => (
+              <SelectItem key={p.id} value={p.id}>
+                {p.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        {hasFilter && (
+          <div className="flex items-center gap-2">
+            <Badge variant="secondary">{filtered.length} hasil</Badge>
+            <button
+              onClick={() => { setSearch(""); setFilterProdi("all"); }}
+              className="text-xs text-muted-foreground hover:text-foreground underline"
+            >
+              Reset filter
+            </button>
+          </div>
+        )}
+      </div>
+
       {loading ? (
-        <p>Memuat data...</p>
-      ) : data.length === 0 ? (
-        <EmptyState
-          title="Belum ada data mata pelajaran"
-          description="Tambahkan mata pelajaran pendukung ke program studi."
-          actionLabel="Tambah Mapel"
-          action={() => {}}
-        />
+        <p className="text-muted-foreground text-sm">Memuat data...</p>
+      ) : filtered.length === 0 ? (
+        <div className="rounded-md border bg-white dark:bg-zinc-900 py-16 text-center">
+          <Search className="h-8 w-8 text-muted-foreground mx-auto mb-3" />
+          <p className="font-medium">Tidak ada data yang cocok</p>
+          <p className="text-sm text-muted-foreground mt-1">Coba ubah filter atau kata kunci pencarian</p>
+        </div>
       ) : (
         <div className="rounded-md border bg-white dark:bg-zinc-900">
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-10">#</TableHead>
                 <TableHead>Program Studi</TableHead>
                 <TableHead>Mata Pelajaran</TableHead>
-                <TableHead>Aksi</TableHead>
+                <TableHead className="w-20">Aksi</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {data.map((item) => (
+              {filtered.map((item, idx) => (
                 <TableRow key={item.id}>
+                  <TableCell className="text-muted-foreground text-sm">{idx + 1}</TableCell>
                   <TableCell>{item.programStudi.nama_program_studi}</TableCell>
                   <TableCell>{item.nama_mata_pelajaran}</TableCell>
                   <TableCell>
@@ -97,9 +175,7 @@ export default function MapelPendukungPage() {
                           }}
                           trigger={
                             <DialogTrigger asChild>
-                              <DropdownMenuItem
-                                onSelect={(e) => e.preventDefault()}
-                              >
+                              <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
                                 <Pencil className="mr-2 h-4 w-4" />
                                 Edit
                               </DropdownMenuItem>

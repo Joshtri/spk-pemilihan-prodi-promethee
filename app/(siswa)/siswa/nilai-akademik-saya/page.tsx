@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import axios from "axios";
 import { PageHeader } from "@/components/common/PageHeader";
 import { Card } from "@/components/ui/card";
@@ -13,6 +13,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import {
   BookOpen,
   Award,
@@ -21,6 +22,8 @@ import {
   TrendingUp,
   BarChart3,
   CheckCircle2,
+  Search,
+  X,
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
@@ -41,10 +44,11 @@ interface NilaiAkademik {
 export default function NilaiAkademikSayaPage() {
   const [data, setData] = useState<NilaiAkademik[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     axios
-      .get("/api/nilai-akademik/me") // ← asumsi ambil nilai berdasarkan auth
+      .get("/api/nilai-akademik/me")
       .then((res) => {
         setData(res.data?.data || []);
       })
@@ -54,7 +58,18 @@ export default function NilaiAkademikSayaPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  // Get grade color based on value
+  // Filtered data based on search query
+  const filteredData = useMemo(() => {
+    if (!searchQuery.trim()) return data;
+    const q = searchQuery.toLowerCase();
+    return data.filter(
+      (item) =>
+        item.pelajaran.toLowerCase().includes(q) ||
+        item.nilai.toString().includes(q) ||
+        getGradeLetter(item.nilai).toLowerCase().includes(q),
+    );
+  }, [data, searchQuery]);
+
   const getGradeColor = (nilai: number) => {
     if (nilai >= 90) return "text-emerald-600 bg-emerald-50";
     if (nilai >= 80) return "text-green-600 bg-green-50";
@@ -63,7 +78,6 @@ export default function NilaiAkademikSayaPage() {
     return "text-red-600 bg-red-50";
   };
 
-  // Get progress color based on value
   const getProgressColor = (nilai: number) => {
     if (nilai >= 90) return "bg-emerald-500";
     if (nilai >= 80) return "bg-green-500";
@@ -72,28 +86,25 @@ export default function NilaiAkademikSayaPage() {
     return "bg-red-500";
   };
 
-  // Get grade letter based on value
-  const getGradeLetter = (nilai: number) => {
+  function getGradeLetter(nilai: number) {
     if (nilai >= 90) return "A";
     if (nilai >= 80) return "B";
     if (nilai >= 70) return "C";
     if (nilai >= 60) return "D";
     return "E";
-  };
+  }
 
-  // Calculate average grade
   const calculateAverage = () => {
     if (data.length === 0) return 0;
     const sum = data.reduce((acc, item) => acc + item.nilai, 0);
     return Math.round(sum / data.length);
   };
 
-  // Get highest and lowest grades
   const getHighestGrade = () => {
     if (data.length === 0) return null;
     return data.reduce(
       (max, item) => (item.nilai > max.nilai ? item : max),
-      data[0]
+      data[0],
     );
   };
 
@@ -101,11 +112,10 @@ export default function NilaiAkademikSayaPage() {
     if (data.length === 0) return null;
     return data.reduce(
       (min, item) => (item.nilai < min.nilai ? item : min),
-      data[0]
+      data[0],
     );
   };
 
-  // Count grades by letter
   const countGradesByLetter = () => {
     const counts = { A: 0, B: 0, C: 0, D: 0, E: 0 };
     data.forEach((item) => {
@@ -119,6 +129,7 @@ export default function NilaiAkademikSayaPage() {
   const averageGrade = calculateAverage();
   const highestGrade = getHighestGrade();
   const lowestGrade = getLowestGrade();
+  const isSearching = searchQuery.trim().length > 0;
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-4 sm:py-6">
@@ -135,7 +146,9 @@ export default function NilaiAkademikSayaPage() {
       ) : data.length === 0 ? (
         <Card className="flex flex-col items-center justify-center py-12 sm:py-16 px-4 text-center">
           <FileText className="h-10 w-10 sm:h-12 sm:w-12 text-muted-foreground mb-3 sm:mb-4" />
-          <h3 className="text-base sm:text-lg font-medium mb-2">Belum Ada Nilai</h3>
+          <h3 className="text-base sm:text-lg font-medium mb-2">
+            Belum Ada Nilai
+          </h3>
           <p className="text-sm sm:text-base text-muted-foreground max-w-md">
             Belum ada nilai akademik yang tersedia untuk Anda. Nilai akan
             ditampilkan setelah guru melakukan penilaian.
@@ -153,9 +166,14 @@ export default function NilaiAkademikSayaPage() {
                     Rata-rata Nilai
                   </p>
                   <div className="flex items-baseline gap-1.5 sm:gap-2">
-                    <h3 className="text-xl sm:text-2xl font-bold">{averageGrade}</h3>
+                    <h3 className="text-xl sm:text-2xl font-bold">
+                      {averageGrade}
+                    </h3>
                     <Badge
-                      className={cn("font-bold text-xs", getGradeColor(averageGrade))}
+                      className={cn(
+                        "font-bold text-xs",
+                        getGradeColor(averageGrade),
+                      )}
                     >
                       {getGradeLetter(averageGrade)}
                     </Badge>
@@ -169,7 +187,6 @@ export default function NilaiAkademikSayaPage() {
                 value={averageGrade}
                 max={100}
                 className="h-2 mt-3 sm:mt-4"
-                // indicatorClassName={getProgressColor(averageGrade)}
               />
             </Card>
 
@@ -188,7 +205,7 @@ export default function NilaiAkademikSayaPage() {
                       <Badge
                         className={cn(
                           "font-bold text-xs",
-                          getGradeColor(highestGrade.nilai)
+                          getGradeColor(highestGrade.nilai),
                         )}
                       >
                         {getGradeLetter(highestGrade.nilai)}
@@ -230,11 +247,15 @@ export default function NilaiAkademikSayaPage() {
                                       D: "bg-yellow-50 text-yellow-600",
                                       E: "bg-red-50 text-red-600",
                                     }[letter]
-                                  : "bg-gray-50 text-gray-400"
+                                  : "bg-gray-50 text-gray-400",
                               )}
                             >
-                              <span className="font-bold text-xs sm:text-sm">{letter}</span>
-                              <span className="text-[10px] sm:text-xs">{count}</span>
+                              <span className="font-bold text-xs sm:text-sm">
+                                {letter}
+                              </span>
+                              <span className="text-[10px] sm:text-xs">
+                                {count}
+                              </span>
                             </div>
                           </TooltipTrigger>
                           <TooltipContent>
@@ -257,12 +278,39 @@ export default function NilaiAkademikSayaPage() {
           {/* Grades Table */}
           <Card className="overflow-hidden border">
             <div className="bg-muted/50 px-3 sm:px-4 py-2.5 sm:py-3 border-b">
-              <div className="flex items-center justify-between gap-2">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <h3 className="text-sm sm:text-base font-medium flex items-center gap-2">
                   <BookOpen className="h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0" />
                   <span className="truncate">Daftar Nilai Mata Pelajaran</span>
                 </h3>
-                <Badge variant="outline" className="text-xs flex-shrink-0">{data.length} Mapel</Badge>
+                <div className="flex items-center gap-2">
+                  {/* Search Input */}
+                  <div className="relative">
+                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
+                    <Input
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder="Cari mata pelajaran..."
+                      className="pl-8 pr-8 h-8 text-xs sm:text-sm w-44 sm:w-56"
+                    />
+                    {isSearching && (
+                      <button
+                        onClick={() => setSearchQuery("")}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    )}
+                  </div>
+                  <Badge
+                    variant="outline"
+                    className="text-xs flex-shrink-0 whitespace-nowrap"
+                  >
+                    {isSearching
+                      ? `${filteredData.length} / ${data.length} Mapel`
+                      : `${data.length} Mapel`}
+                  </Badge>
+                </div>
               </div>
             </div>
 
@@ -270,69 +318,94 @@ export default function NilaiAkademikSayaPage() {
               <Table>
                 <TableHeader className="bg-muted/30 sticky top-0">
                   <TableRow>
-                    <TableHead className="w-8 sm:w-12 text-center text-xs">#</TableHead>
-                    <TableHead className="text-xs sm:text-sm">Mata Pelajaran</TableHead>
-                    <TableHead className="w-16 sm:w-24 text-center text-xs sm:text-sm">Nilai</TableHead>
-                    <TableHead className="w-16 sm:w-24 text-center text-xs sm:text-sm">Grade</TableHead>
-                    <TableHead className="hidden md:table-cell w-[180px] text-xs sm:text-sm">Progress</TableHead>
+                    <TableHead className="w-8 sm:w-12 text-center text-xs">
+                      #
+                    </TableHead>
+                    <TableHead className="text-xs sm:text-sm">
+                      Mata Pelajaran
+                    </TableHead>
+                    <TableHead className="w-16 sm:w-24 text-center text-xs sm:text-sm">
+                      Nilai
+                    </TableHead>
+                    <TableHead className="w-16 sm:w-24 text-center text-xs sm:text-sm">
+                      Grade
+                    </TableHead>
+                    <TableHead className="hidden md:table-cell w-[180px] text-xs sm:text-sm">
+                      Progress
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {data.map((item, index) => (
-                    <TableRow key={item.id} className="hover:bg-muted/30">
-                      <TableCell className="text-center text-xs sm:text-sm font-medium text-muted-foreground">
-                        {index + 1}
-                      </TableCell>
-                      <TableCell className="text-xs sm:text-sm">
-                        <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
-                          <BookOpen className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
-                          <span className="truncate">{item.pelajaran}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-center text-sm sm:text-base font-bold">
-                        {item.nilai}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <Badge
-                          className={cn("font-bold text-[10px] sm:text-xs", getGradeColor(item.nilai))}
-                        >
-                          {getGradeLetter(item.nilai)}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="hidden md:table-cell">
-                        <div className="flex items-center gap-2">
-                          <Progress
-                            value={item.nilai}
-                            max={100}
-                            className="h-2"
-                            // indicatorClassName={getProgressColor(item.nilai)}
-                          />
-                          <span className="text-xs w-8 text-right">
-                            {item.nilai}%
-                          </span>
-                        </div>
+                  {filteredData.length === 0 ? (
+                    <TableRow>
+                      <TableCell
+                        colSpan={5}
+                        className="text-center py-8 text-muted-foreground text-sm"
+                      >
+                        <Search className="h-5 w-5 mx-auto mb-2 opacity-40" />
+                        Tidak ada mata pelajaran yang cocok dengan &quot;
+                        {searchQuery}&quot;
                       </TableCell>
                     </TableRow>
-                  ))}
+                  ) : (
+                    filteredData.map((item, index) => (
+                      <TableRow key={item.id} className="hover:bg-muted/30">
+                        <TableCell className="text-center text-xs sm:text-sm font-medium text-muted-foreground">
+                          {index + 1}
+                        </TableCell>
+                        <TableCell className="text-xs sm:text-sm">
+                          <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+                            <BookOpen className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
+                            <span className="truncate">{item.pelajaran}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-center text-sm sm:text-base font-bold">
+                          {item.nilai}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <Badge
+                            className={cn(
+                              "font-bold text-[10px] sm:text-xs",
+                              getGradeColor(item.nilai),
+                            )}
+                          >
+                            {getGradeLetter(item.nilai)}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="hidden md:table-cell">
+                          <div className="flex items-center gap-2">
+                            <Progress
+                              value={item.nilai}
+                              max={100}
+                              className="h-2"
+                            />
+                            <span className="text-xs w-8 text-right">
+                              {item.nilai}%
+                            </span>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
                 </TableBody>
               </Table>
             </ScrollArea>
-
           </Card>
-            <div className="bg-muted/20 px-3 sm:px-4 py-2.5 sm:py-3 border-t mt-10">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
-                <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
-                  <CheckCircle2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary flex-shrink-0" />
-                  <span>Semua nilai telah diperbarui</span>
-                </div>
-                <div className="text-xs sm:text-sm">
-                  Rata-rata:{" "}
-                  <span className="font-medium">
-                    {averageGrade} ({getGradeLetter(averageGrade)})
-                  </span>
-                </div>
+
+          <div className="bg-muted/20 px-3 sm:px-4 py-2.5 sm:py-3 border-t mt-10">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+              <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
+                <CheckCircle2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary flex-shrink-0" />
+                <span>Semua nilai telah diperbarui</span>
+              </div>
+              <div className="text-xs sm:text-sm">
+                Rata-rata:{" "}
+                <span className="font-medium">
+                  {averageGrade} ({getGradeLetter(averageGrade)})
+                </span>
               </div>
             </div>
+          </div>
         </div>
       )}
     </div>

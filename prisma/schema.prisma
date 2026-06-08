@@ -7,99 +7,81 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum Role {
-  ADMIN
-  SISWA
-}
-
 model User {
-  id          String    @id @default(uuid()) @db.VarChar(80)
-  name        String
-  email       String    @unique
-  password    String
-  role        Role
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  lastLoginAt DateTime?
-
-  // Relations
-  nilaiAkademik       NilaiAkademikSiswa[]
-  tesMinat            TesMinatSiswa[]
-  hasil               HasilPerhitungan[]
+  id                  String                @id @default(uuid()) @db.VarChar(80)
+  name                String
+  email               String                @unique
+  password            String
+  role                Role
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @updatedAt
+  lastLoginAt         DateTime?
   evaluasi            EvaluasiKriteria[]
+  hasil               HasilPerhitungan[]
   Log                 Log[]
+  nilaiAkademik       NilaiAkademikSiswa[]
   PilihanProgramStudi PilihanProgramStudi[]
+  tesMinat            TesMinatSiswa[]
 }
 
 model ProgramStudi {
-  id                 String   @id @default(uuid()) @db.VarChar(80)
-  nama_program_studi String
-  biaya_kuliah       Int
-  akreditasi         String   @db.VarChar(20)
-  keterangan         String?
-  rumpunIlmuId       String?  @db.VarChar(80)
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
-
-  // Relations
-  mataPelajaranPendukung MataPelajaranPendukung[]
-  riasec                 ProgramStudiRiasec[]
-  // evaluasi               EvaluasiKriteria[]
-  hasil                  HasilPerhitungan[]
-  RumpunIlmu             RumpunIlmu?              @relation(fields: [rumpunIlmuId], references: [id])
+  id                     String                   @id @default(uuid()) @db.VarChar(80)
+  nama_program_studi     String
+  biaya_kuliah           Int
+  akreditasi             String                   @db.VarChar(20)
+  keterangan             String?
+  rumpunIlmuId           String?                  @db.VarChar(80)
+  createdAt              DateTime                 @default(now())
+  updatedAt              DateTime                 @updatedAt
   EvaluasiKriteria       EvaluasiKriteria[]
+  hasil                  HasilPerhitungan[]
+  mataPelajaranPendukung MataPelajaranPendukung[]
   PilihanProgramStudi    PilihanProgramStudi[]
+  RumpunIlmu             RumpunIlmu?              @relation(fields: [rumpunIlmuId], references: [id])
+  riasec                 ProgramStudiRiasec[]
 }
 
 model MataPelajaranPendukung {
-  id                  String   @id @default(uuid()) @db.VarChar(80)
-  programStudiId      String   @db.VarChar(80)
+  id                  String       @id @default(uuid()) @db.VarChar(80)
+  programStudiId      String       @db.VarChar(80)
   nama_mata_pelajaran String
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
-
-  // Relations
-  programStudi ProgramStudi @relation(fields: [programStudiId], references: [id])
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @updatedAt
+  programStudi        ProgramStudi @relation(fields: [programStudiId], references: [id])
 }
 
 model ProgramStudiRiasec {
-  id             String   @id @default(uuid()) @db.VarChar(80)
-  programStudiId String?   @db.VarChar(80)
+  id             String        @id @default(uuid()) @db.VarChar(80)
+  programStudiId String?       @db.VarChar(80)
   tipeRiasec     String
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-
-  // Relations
-  programStudi ProgramStudi? @relation(fields: [programStudiId], references: [id])
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  programStudi   ProgramStudi? @relation(fields: [programStudiId], references: [id])
 }
 
 model Kriteria {
-  id             String   @id @default(uuid()) @db.VarChar(80)
+  id             String             @id @default(uuid()) @db.VarChar(80)
   nama_kriteria  String
   keterangan     String?
-  bobot_kriteria Float    @default(0)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-
-  // Relations
-  subKriteria SubKriteria[]
-  evaluasi    EvaluasiKriteria[]
-  hasil       HasilPerhitungan[]
+  bobot_kriteria Float              @default(0)
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  evaluasi       EvaluasiKriteria[]
+  hasil          HasilPerhitungan[]
+  subKriteria    SubKriteria[]
 }
 
 model SubKriteria {
-  id                 String   @id @default(uuid()) @db.VarChar(80)
-  kriteriaId         String   @db.VarChar(80)
+  id                 String             @id @default(uuid()) @db.VarChar(80)
+  kriteriaId         String             @db.VarChar(80)
   nama_sub_kriteria  String
   bobot_sub_kriteria Float
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
   keterangan         String?
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
-
-  // Relations
-  kriteria         Kriteria           @relation(fields: [kriteriaId], references: [id])
-  evaluasi         EvaluasiKriteria[]
-  HasilPerhitungan HasilPerhitungan[]
+  evaluasi           EvaluasiKriteria[]
+  HasilPerhitungan   HasilPerhitungan[]
+  kriteria           Kriteria           @relation(fields: [kriteriaId], references: [id])
 }
 
 model NilaiAkademikSiswa {
@@ -109,66 +91,53 @@ model NilaiAkademikSiswa {
   nilai     Int
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  // Relations
-  user User @relation(fields: [userId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
 }
 
 model TesMinatSiswa {
   id        String   @id @default(uuid()) @db.VarChar(80)
   userId    String   @db.VarChar(80)
-  tipe      String // "R", "I", "A", "S", "E", "C"
-  // skor      Int
+  tipe      String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  // Relations
-  user User @relation(fields: [userId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
 }
 
-//jadi yang berelasi disini seharusnya siswa. 
 model EvaluasiKriteria {
-  id             String   @id @default(uuid()) @db.VarChar(80)
-  userId         String   @db.VarChar(80)
-  kriteriaId     String   @db.VarChar(80)
-  subKriteriaId  String   @db.VarChar(80)
-  programStudiId String   @db.VarChar(80)
-  // nilai          Float
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-
-  // Relations
-  user         User         @relation(fields: [userId], references: [id])
-  kriteria     Kriteria     @relation(fields: [kriteriaId], references: [id])
-  subKriteria  SubKriteria  @relation(fields: [subKriteriaId], references: [id])
-  programStudi ProgramStudi @relation(fields: [programStudiId], references: [id])
+  id             String       @id @default(uuid()) @db.VarChar(80)
+  userId         String       @db.VarChar(80)
+  kriteriaId     String       @db.VarChar(80)
+  subKriteriaId  String       @db.VarChar(80)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  programStudiId String       @db.VarChar(80)
+  kriteria       Kriteria     @relation(fields: [kriteriaId], references: [id])
+  programStudi   ProgramStudi @relation(fields: [programStudiId], references: [id])
+  subKriteria    SubKriteria  @relation(fields: [subKriteriaId], references: [id])
+  user           User         @relation(fields: [userId], references: [id])
 }
 
 model RumpunIlmu {
-  id        String   @id @default(uuid()) @db.VarChar(80)
-  nama      String   @db.VarChar(100)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Relations
+  id           String         @id @default(uuid()) @db.VarChar(80)
+  nama         String         @db.VarChar(100)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
   programStudi ProgramStudi[]
 }
 
 model HasilPerhitungan {
-  id             String   @id @default(uuid()) @db.VarChar(80)
-  userId         String   @db.VarChar(80)
-  programStudiId String   @db.VarChar(80)
-  kriteriaId     String   @db.VarChar(80)
-  subKriteriaId  String   @db.VarChar(80)
+  id             String       @id @default(uuid()) @db.VarChar(80)
+  userId         String       @db.VarChar(80)
+  programStudiId String       @db.VarChar(80)
+  kriteriaId     String       @db.VarChar(80)
+  subKriteriaId  String       @db.VarChar(80)
   nilai          Float
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-
-  // Relations
-  user         User         @relation(fields: [userId], references: [id])
-  programStudi ProgramStudi @relation(fields: [programStudiId], references: [id])
-  kriteria     Kriteria     @relation(fields: [kriteriaId], references: [id])
-  subKriteria  SubKriteria  @relation(fields: [subKriteriaId], references: [id])
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  kriteria       Kriteria     @relation(fields: [kriteriaId], references: [id])
+  programStudi   ProgramStudi @relation(fields: [programStudiId], references: [id])
+  subKriteria    SubKriteria  @relation(fields: [subKriteriaId], references: [id])
+  user           User         @relation(fields: [userId], references: [id])
 }
 
 model Log {
@@ -181,12 +150,16 @@ model Log {
 }
 
 model PilihanProgramStudi {
-  id             String   @id @default(uuid()) @db.VarChar(80)
-  userId         String   @db.VarChar(80)
-  programStudiId String   @db.VarChar(80)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id             String       @id @default(uuid()) @db.VarChar(80)
+  userId         String       @db.VarChar(80)
+  programStudiId String       @db.VarChar(80)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  programStudi   ProgramStudi @relation(fields: [programStudiId], references: [id])
+  user           User         @relation(fields: [userId], references: [id])
+}
 
-  user         User         @relation(fields: [userId], references: [id])
-  programStudi ProgramStudi @relation(fields: [programStudiId], references: [id])
+enum Role {
+  ADMIN
+  SISWA
 }

@@ -76,8 +76,7 @@ export async function evaluateCriteriaMapping(userId: string, programStudiIds: s
         }
 
         // --- Nilai Akademik ---
-        // DB codes (sorted by bobot DESC): NA1(5) > NA2(4) > NA3(3) > NA4(2) > NA5(1)
-        // Ranges from proposal: ≥96→5, 91-95→4, 85-90→3, 80-84→2, <80→1
+        // Range (proposal Tabel 3.5): 95-100→5, 90-94→4, 85-89→3, 80-84→2, 75-79→1
         // For programs with multiple supporting subjects, average the student's available scores.
         if (akademikKriteria) {
             const namaMapels = ps.mataPelajaranPendukung.map((m: any) => m.nama_mata_pelajaran);
@@ -87,7 +86,7 @@ export async function evaluateCriteriaMapping(userId: string, programStudiIds: s
                 : 0;
 
             const akademikSubs = sortedSubs(subKriteriaList, akademikKriteria.id);
-            const idx = score >= 96 ? 0 : score >= 91 ? 1 : score >= 85 ? 2 : score >= 80 ? 3 : akademikSubs.length - 1;
+            const idx = score >= 95 ? 0 : score >= 90 ? 1 : score >= 85 ? 2 : score >= 80 ? 3 : akademikSubs.length - 1;
             const sub = akademikSubs[Math.min(idx, akademikSubs.length - 1)];
             if (sub) pushResult(ps.id, akademikKriteria, sub);
 

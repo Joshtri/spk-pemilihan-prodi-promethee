@@ -12,4 +12,8 @@ export enum MataPelajaranEnum {
     EKONOMI = "Ekonomi",
     GEOGRAFI = "Geografi",
     PJOK = "Pendidikan Jasmani Olahraga, dan Kesehatan (PJOK)",
+    PJOR = "Pendidikan Jasmani, Olahraga, dan Rekreasi",
+    PSIKOLOGI = "Psikologi",
+    SENI_BUDAYA = "Seni Budaya", 
+
 }

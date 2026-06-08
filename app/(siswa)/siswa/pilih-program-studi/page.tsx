@@ -29,6 +29,7 @@ export default function PilihProgramStudiPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const [rankingData, setRankingData] = useState<any>(null);
+  const [submittedOrder, setSubmittedOrder] = useState<string[]>([]);
   const [search, setSearch] = useState("");
   const [filterAkreditasi, setFilterAkreditasi] = useState("Semua");
   const resultsRef = useRef<HTMLDivElement>(null);
@@ -85,6 +86,7 @@ export default function PilihProgramStudiPage() {
         includeDetails: true,
       });
       setRankingData(res.data);
+      setSubmittedOrder(selectedList);
       setShowResults(true);
       toast.success("Berhasil menghitung rekomendasi!", { description: "Hasil perankingan telah ditampilkan." });
       setTimeout(() => {
@@ -285,6 +287,7 @@ export default function PilihProgramStudiPage() {
           <PrometheeResultSection
             hasilRanking={rankingData.data}
             calculationDetails={rankingData.details}
+            programStudiIds={submittedOrder}
           />
           <div className="mt-6 flex justify-end">
             <Button

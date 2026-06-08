@@ -26,19 +26,30 @@ export async function POST(req: Request) {
             return NextResponse.json({ success: false, message: "Data tidak valid" }, { status: 400 });
         }
 
-        // Hapus dulu semua nilai sebelumnya (opsional, bisa diubah jadi upsert)
-        await prisma.nilaiAkademikSiswa.deleteMany({ where: { userId } });
+        // Ambil data yang sudah ada untuk user ini
+        const existing = await prisma.nilaiAkademikSiswa.findMany({ where: { userId } });
+        const existingMap = new Map(existing.map((e) => [e.pelajaran, e.id]));
 
-        // Simpan nilai-nilai baru
-        const result = await prisma.nilaiAkademikSiswa.createMany({
-            data: nilaiList.map((n) => ({
-                userId,
-                pelajaran: n.pelajaran,
-                nilai: n.nilai,
-            })),
-        });
+        // Upsert: update jika sudah ada, create jika belum
+        await prisma.$transaction([
+            ...nilaiList
+                .filter((n: { pelajaran: string; nilai: number }) => existingMap.has(n.pelajaran))
+                .map((n: { pelajaran: string; nilai: number }) =>
+                    prisma.nilaiAkademikSiswa.update({
+                        where: { id: existingMap.get(n.pelajaran)! },
+                        data: { nilai: n.nilai },
+                    })
+                ),
+            ...nilaiList
+                .filter((n: { pelajaran: string; nilai: number }) => !existingMap.has(n.pelajaran))
+                .map((n: { pelajaran: string; nilai: number }) =>
+                    prisma.nilaiAkademikSiswa.create({
+                        data: { userId, pelajaran: n.pelajaran, nilai: n.nilai },
+                    })
+                ),
+        ]);
 
-        return NextResponse.json({ success: true, result });
+        return NextResponse.json({ success: true });
     } catch (error) {
         console.error("POST /api/nilai-akademik error:", error);
         return NextResponse.json({ success: false, message: "Server error" }, { status: 500 });

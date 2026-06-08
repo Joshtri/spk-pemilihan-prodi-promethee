@@ -45,24 +45,9 @@ export async function runPrometheePreview(userId: string, programStudiIds: strin
     const subKriteriaList = await prisma.subKriteria.findMany();
 
     // Collect all unique criteria IDs in a consistent sorted order
+    // Catatan: PROMETHEE basic pada proposal ini memakai rumus 2.7 (rata-rata 1/k)
+    // sehingga bobot kriteria TIDAK dipakai pada indeks preferensi.
     const uniqueCriteriaIds = [...new Set(mappingResults.map((m) => m.kriteriaId))].sort();
-
-    // Build criteria weight map and normalize weights
-    const criteriaWeightMap = new Map<string, number>();
-    for (const item of mappingResults) {
-        if (!criteriaWeightMap.has(item.kriteriaId) && item.bobot) {
-            criteriaWeightMap.set(item.kriteriaId, item.bobot);
-        }
-    }
-    const totalWeight = uniqueCriteriaIds.reduce(
-        (sum, kId) => sum + (criteriaWeightMap.get(kId) ?? 0),
-        0
-    );
-    const normalizedWeights = uniqueCriteriaIds.map((kId) =>
-        totalWeight > 0
-            ? (criteriaWeightMap.get(kId) ?? 0) / totalWeight
-            : 1 / uniqueCriteriaIds.length
-    );
 
     // Get ordered list of program IDs
     const ids = [...new Set(mappingResults.map((m) => m.programStudiId))];
@@ -77,39 +62,46 @@ export async function runPrometheePreview(userId: string, programStudiIds: strin
     });
 
     const n = ids.length;
-    const leavingFlows: number[] = new Array(n).fill(0);
-    const enteringFlows: number[] = new Array(n).fill(0);
+    const k = uniqueCriteriaIds.length; // jumlah kriteria
+    // PROMETHEE basic (tipe preferensi Usual / rumus 2.1):
+    //   H(d) = 1 jika d > 0, selain itu 0    (d = f(i) - f(j))
+    // Indeks preferensi multikriteria (rumus 2.7):
+    //   π(i,j) = (1/k) Σ_c H_c(i,j)          — rata-rata sederhana, TANPA bobot kriteria
+    // φ+(i) = leaving flow  = Σ_j π(i,j) / (n-1)  — seberapa besar i mengungguli yang lain
+    // φ-(i) = entering flow = Σ_j π(j,i) / (n-1)  — seberapa besar yang lain mengungguli i
+    // φ(i)  = net flow      = φ+(i) - φ-(i)
+    const phiPlus: number[] = new Array(n).fill(0);   // leaving flow  φ+
+    const phiMinus: number[] = new Array(n).fill(0);  // entering flow φ-
 
-    // PROMETHEE II: compute π(i,j) and accumulate leaving/entering flows
     for (let i = 0; i < n; i++) {
         for (let j = 0; j < n; j++) {
             if (i === j) continue;
 
-            // Aggregated preference π(i,j) = Σ_k [ w_k * P_k(i,j) ]
-            // Usual preference function: P_k(i,j) = 1 if d > 0, else 0
+            // π(i,j): preferensi i terhadap j (usual criterion, rata-rata 1/k)
             let pi_ij = 0;
-            for (let k = 0; k < uniqueCriteriaIds.length; k++) {
-                const d = matrix[i][k] - matrix[j][k];
-                pi_ij += normalizedWeights[k] * (d > 0 ? 1 : 0);
+            for (let c = 0; c < k; c++) {
+                const d = matrix[i][c] - matrix[j][c];
+                pi_ij += d > 0 ? 1 : 0;
             }
+            pi_ij = k > 0 ? pi_ij / k : 0; // rumus 2.7: bagi jumlah kriteria
 
-            leavingFlows[i] += pi_ij;   // φ+(i) += π(i,j)
-            enteringFlows[j] += pi_ij;  // φ-(j) += π(i,j)
+            phiPlus[i] += pi_ij;   // Σ_j π(i,j) → leaving flow i
+            phiMinus[j] += pi_ij;  // Σ_i π(i,j) → entering flow j
         }
     }
 
     // Normalize by (n-1)
     for (let i = 0; i < n; i++) {
-        leavingFlows[i] /= n - 1;
-        enteringFlows[i] /= n - 1;
+        phiPlus[i] /= n - 1;
+        phiMinus[i] /= n - 1;
     }
 
-    // Calculate net flows
+    // Net flow = φ+(i) - φ-(i)
     const netFlows = ids.map((id, i) => ({
         programStudiId: id,
-        netFlow: leavingFlows[i] - enteringFlows[i],
-        leavingFlow: leavingFlows[i],
-        enteringFlow: enteringFlows[i],
+        netFlow: phiPlus[i] - phiMinus[i],
+        leavingFlow: phiPlus[i],
+        enteringFlow: phiMinus[i],
     }));
 
     // Sort by netFlow (descending)
@@ -136,7 +128,7 @@ export async function runPrometheePreview(userId: string, programStudiIds: strin
 
 
 
-    // Prepare detailed results (use ids index for flows — ids order is stable before sorting)
+    // Prepare detailed results (ids order is stable — phiPlus/phiMinus indexed by same ids array)
     const details = ids.map((id, i) => {
         const program = programMap.find((p) => p.id === id);
         const nf = netFlows.find((nfItem) => nfItem.programStudiId === id);
@@ -153,8 +145,8 @@ export async function runPrometheePreview(userId: string, programStudiIds: strin
                     kriteriaId: item.kriteriaId,
                     subKriteriaId: item.subKriteriaId,
                 })),
-            leavingFlow: Number.isFinite(leavingFlows[i]) ? leavingFlows[i] : 0,
-            enteringFlow: Number.isFinite(enteringFlows[i]) ? enteringFlows[i] : 0,
+            leavingFlow: Number.isFinite(phiPlus[i]) ? phiPlus[i] : 0,
+            enteringFlow: Number.isFinite(phiMinus[i]) ? phiMinus[i] : 0,
             netFlow: nf && Number.isFinite(nf.netFlow) ? nf.netFlow : 0,
         };
     });

@@ -106,30 +106,35 @@ export default function HasilRankPage() {
                         <TableHeader>
                           <TableRow>
                             <TableHead>Kriteria</TableHead>
-                            <TableHead>Subkriteria</TableHead>
-                            <TableHead>Bobot Kriteria</TableHead>
-                            <TableHead>Bobot Sub</TableHead>
-                            <TableHead>Nilai</TableHead>
+                            <TableHead>Kode Sub-Kriteria</TableHead>
+                            <TableHead className="text-center">Nilai (1–5)</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {items.map((entry) => (
-                            <TableRow key={entry.id}>
-                              <TableCell>
-                                {entry.kriteria.nama_kriteria}
-                              </TableCell>
-                              <TableCell>
-                                {entry.subKriteria.nama_sub_kriteria}
-                              </TableCell>
-                              <TableCell>
-                                {entry.kriteria.bobot_kriteria}
-                              </TableCell>
-                              <TableCell>
-                                {entry.subKriteria.bobot_sub_kriteria}
-                              </TableCell>
-                              <TableCell>{entry.nilai}</TableCell>
-                            </TableRow>
-                          ))}
+                          {items.map((entry) => {
+                            const val = entry.nilai;
+                            const badgeClass =
+                              val === 5 ? "bg-emerald-100 text-emerald-700 border-emerald-300" :
+                              val === 4 ? "bg-green-100 text-green-700 border-green-300" :
+                              val === 3 ? "bg-yellow-100 text-yellow-700 border-yellow-300" :
+                              val === 2 ? "bg-orange-100 text-orange-700 border-orange-300" :
+                              "bg-red-100 text-red-700 border-red-300";
+                            return (
+                              <TableRow key={entry.id}>
+                                <TableCell className="font-medium">
+                                  {entry.kriteria.nama_kriteria}
+                                </TableCell>
+                                <TableCell className="font-mono text-sm">
+                                  {entry.subKriteria.nama_sub_kriteria}
+                                </TableCell>
+                                <TableCell className="text-center">
+                                  <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold border ${badgeClass}`}>
+                                    {val}
+                                  </span>
+                                </TableCell>
+                              </TableRow>
+                            );
+                          })}
                         </TableBody>
                       </Table>
                     </CardContent>

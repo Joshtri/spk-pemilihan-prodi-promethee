@@ -330,7 +330,7 @@ export default function ListNilaiAkademikPage() {
                   </AccordionTrigger>
                   <AccordionContent className="px-0 pt-2 pb-0">
                     <Card className="border-t-0 rounded-t-none">
-                      <ScrollArea className="max-h-[400px]">
+                      <ScrollArea className="">
                         <Table>
                           <TableHeader className="bg-muted/50 sticky top-0">
                             <TableRow>

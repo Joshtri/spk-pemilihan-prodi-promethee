@@ -102,6 +102,8 @@ export async function runPromethee(userId: string) {
     preferensi[A] = {};
     for (const B of programIds) {
       if (A === B) continue;
+      // Indeks preferensi multikriteria (rumus 2.7): π = (1/k) Σ H(d)
+      // dengan tipe Usual (rumus 2.1): H(d) = 1 jika d > 0, selain itu 0. Tanpa bobot kriteria.
       let total = 0;
       for (const k of kriteriaList) {
         const evaA = evaluasi.find((e) => e.programStudiId === A && e.kriteriaId === k.id);
@@ -109,10 +111,9 @@ export async function runPromethee(userId: string) {
 
         if (!evaA || !evaB) continue;
         const diff = evaA.subKriteria.bobot_sub_kriteria - evaB.subKriteria.bobot_sub_kriteria;
-        const p = diff > 0 ? 1 : diff < 0 ? 0 : 0.5;
-        total += p * k.bobot_kriteria;
+        total += diff > 0 ? 1 : 0;
       }
-      preferensi[A][B] = total;
+      preferensi[A][B] = kriteriaList.length > 0 ? total / kriteriaList.length : 0;
     }
   }
 

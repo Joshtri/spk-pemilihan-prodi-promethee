@@ -443,9 +443,33 @@ export default function InputNilaiPage() {
     }
   };
 
-  const handleSelectSiswa = (id: string) => {
+  const handleSelectSiswa = async (id: string) => {
     setSelectedSiswa(id);
     setIsSearchOpen(false);
+
+    // Load existing nilai for this student and pre-populate the form
+    try {
+      const res = await axios.get(`/api/nilai-akademik/siswa/${id}`);
+      const existingNilai: { pelajaran: string; nilai: number }[] = res.data?.data || [];
+
+      if (existingNilai.length > 0) {
+        const existingSubjects = existingNilai.map((n) => ({
+          id: `selected-${Date.now()}-${n.pelajaran}`,
+          pelajaran: n.pelajaran,
+          nilai: String(n.nilai),
+        }));
+        const existingPelajaran = new Set(existingNilai.map((n) => n.pelajaran));
+        setSelectedSubjects(existingSubjects);
+        setAvailableSubjects(defaultMapel.filter((m) => !existingPelajaran.has(m)));
+        toast.info(`Memuat ${existingNilai.length} nilai yang sudah ada`);
+      } else {
+        setSelectedSubjects([]);
+        setAvailableSubjects(defaultMapel);
+      }
+    } catch {
+      setSelectedSubjects([]);
+      setAvailableSubjects(defaultMapel);
+    }
   };
 
   const filteredSiswaList = siswaList.filter((siswa) =>
@@ -660,7 +684,7 @@ export default function InputNilaiPage() {
                 }
                 className="px-6"
               >
-                {isLoading ? "Menyimpan..." : "Simpan Nilai"}
+                {isLoading ? "Menyimpan..." : "Simpan / Perbarui Nilai"}
               </Button>
             </div>
           </Card>

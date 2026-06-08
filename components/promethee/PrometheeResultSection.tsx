@@ -44,12 +44,18 @@ interface CalculationDetail {
 interface Props {
   hasilRanking: RankingResult[];
   calculationDetails: CalculationDetail[];
+  programStudiIds?: string[];
 }
 
 export function PrometheeResultSection({
   hasilRanking,
   calculationDetails,
+  programStudiIds = [],
 }: Props) {
+  // Build alternative code map: A1, A2, A3, ... based on submission order
+  const altCodeMap = Object.fromEntries(
+    programStudiIds.map((id, i) => [id, `A${i + 1}`])
+  );
   const [showCalculation, setShowCalculation] = useState(false);
 
   const formatFlow = (value: number | null | undefined): string => {
@@ -90,6 +96,37 @@ export function PrometheeResultSection({
           </p>
         </CardHeader>
         <CardContent className="p-6">
+          {/* Narasi rekomendasi */}
+          {hasilRanking.length > 0 && (
+            <div className="mb-6 rounded-lg border border-yellow-200 bg-yellow-50 px-5 py-4">
+              <p className="text-sm font-medium text-yellow-800 mb-1">Rekomendasi Utama</p>
+              <p className="text-base text-yellow-900">
+                Berdasarkan perhitungan metode PROMETHEE, program studi yang paling direkomendasikan
+                untuk kamu adalah{" "}
+                <span className="font-bold">
+                  {hasilRanking[0].nama}
+                </span>{" "}
+                dengan <em>net flow</em> tertinggi sebesar{" "}
+                <span className="font-semibold">{formatFlow(hasilRanking[0].netFlow)}</span>.
+              </p>
+              {hasilRanking.length > 1 && (
+                <p className="text-sm text-yellow-700 mt-2">
+                  Alternatif berikutnya:{" "}
+                  {hasilRanking
+                    .slice(1)
+                    .map((item, i) => (
+                      <span key={item.programStudiId}>
+                        {i > 0 && ", "}
+                        <span className="font-medium">{item.nama}</span>{" "}
+                        <span className="text-yellow-600">({formatFlow(item.netFlow)})</span>
+                      </span>
+                    ))}
+                  .
+                </p>
+              )}
+            </div>
+          )}
+
           <div className="space-y-3">
             {hasilRanking.map((item, index) => (
               <div
@@ -98,13 +135,18 @@ export function PrometheeResultSection({
                   index
                 )}`}
               >
-                <div className="flex items-center">
-                  <div className="w-8 h-8 flex items-center justify-center rounded-full bg-white/20 mr-3">
-                    <span className="font-bold">{index + 1}</span>
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 flex items-center justify-center rounded-full bg-white/20 font-bold shrink-0">
+                    {index + 1}
                   </div>
+                  {altCodeMap[item.programStudiId] && (
+                    <span className="font-mono text-xs bg-white/20 px-1.5 py-0.5 rounded shrink-0">
+                      {altCodeMap[item.programStudiId]}
+                    </span>
+                  )}
                   <span className="font-medium">{item.nama}</span>
                 </div>
-                <div className="text-sm">
+                <div className="text-sm shrink-0">
                   Skor:{" "}
                   <span className="font-semibold">
                     {formatFlow(item.netFlow)}
@@ -146,6 +188,11 @@ export function PrometheeResultSection({
                 >
                   <AccordionTrigger className="hover:no-underline">
                     <div className="flex items-center flex-wrap gap-2">
+                      {altCodeMap[detail.programStudiId] && (
+                        <span className="font-mono text-xs font-bold bg-muted px-1.5 py-0.5 rounded border">
+                          {altCodeMap[detail.programStudiId]}
+                        </span>
+                      )}
                       <span className="font-medium">{detail.nama}</span>
                       <Badge variant="outline" className="text-xs">
                         Net Flow: {formatFlow(detail.netFlow)}
