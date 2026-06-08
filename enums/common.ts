@@ -11,9 +11,9 @@ export enum MataPelajaranEnum {
     MATEMATIKA_TINGKAT_LANJUT = "Matematika tingkat lanjut",
     EKONOMI = "Ekonomi",
     GEOGRAFI = "Geografi",
+    TIK = "Teknologi Informasi dan Komunikasi (TIK)",
     PJOK = "Pendidikan Jasmani Olahraga, dan Kesehatan (PJOK)",
-    PJOR = "Pendidikan Jasmani, Olahraga, dan Rekreasi",
     PSIKOLOGI = "Psikologi",
-    SENI_BUDAYA = "Seni Budaya", 
+    SENI_BUDAYA = "Seni Budaya",
 
 }

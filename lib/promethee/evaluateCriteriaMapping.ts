@@ -83,7 +83,7 @@ export async function evaluateCriteriaMapping(userId: string, programStudiIds: s
             const matchedNilai = nilaiAkademik.filter((n) => namaMapels.includes(n.pelajaran));
             const score = matchedNilai.length > 0
                 ? Math.round(matchedNilai.reduce((sum, n) => sum + n.nilai, 0) / matchedNilai.length)
-                : 0;
+                : 0;    
 
             const akademikSubs = sortedSubs(subKriteriaList, akademikKriteria.id);
             const idx = score >= 95 ? 0 : score >= 90 ? 1 : score >= 85 ? 2 : score >= 80 ? 3 : akademikSubs.length - 1;

@@ -74,8 +74,8 @@ export default function PilihProgramStudiPage() {
 
   const handleSubmit = async () => {
     const selectedList = Array.from(selected);
-    if (selectedList.length < 2) {
-      toast.error("Pilih minimal 2 program studi untuk perbandingan");
+    if (selectedList.length < 3) {
+      toast.error("Pilih minimal 3 program studi untuk perbandingan");
       return;
     }
     try {
@@ -125,7 +125,7 @@ export default function PilihProgramStudiPage() {
     <div className="container mx-auto px-4 py-8 pb-40">
       <PageHeader
         title="Pilih Program Studi"
-        description="Pilih minimal 2 program studi yang ingin kamu bandingkan menggunakan metode PROMETHEE."
+        description="Pilih minimal 3 program studi yang ingin kamu bandingkan menggunakan metode PROMETHEE."
       />
 
       {/* Search & Filter */}
@@ -275,7 +275,7 @@ export default function PilihProgramStudiPage() {
             </div>
           ) : (
             <p className="text-sm text-muted-foreground text-center">
-              Pilih minimal 2 program studi untuk memulai perhitungan PROMETHEE
+              Pilih minimal 3 program studi untuk memulai perhitungan PROMETHEE
             </p>
           )}
         </div>
