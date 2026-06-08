@@ -16,7 +16,7 @@ export async function evaluateCriteriaMapping(userId: string, programStudiIds: s
             prisma.nilaiAkademikSiswa.findMany({ where: { userId } }),
             prisma.programStudi.findMany({
                 where: { id: { in: programStudiIds } },
-                include: { riasec: true },
+                include: { riasec: true, mataPelajaranPendukung: true },
             }),
             prisma.subKriteria.findMany(),
             prisma.kriteria.findMany(),
@@ -77,21 +77,21 @@ export async function evaluateCriteriaMapping(userId: string, programStudiIds: s
 
         // --- Nilai Akademik ---
         // DB codes (sorted by bobot DESC): NA1(5) > NA2(4) > NA3(3) > NA4(2) > NA5(1)
-        // Score >= 90 → rank 0, 80–89 → 1, 70–79 → 2, 60–69 → 3, <60 → 4
+        // Ranges from proposal: ≥96→5, 91-95→4, 85-90→3, 80-84→2, <80→1
+        // For programs with multiple supporting subjects, average the student's available scores.
         if (akademikKriteria) {
-            const mapelPs = await prisma.mataPelajaranPendukung.findFirst({
-                where: { programStudiId: ps.id },
-            });
-            const namaMapel = mapelPs?.nama_mata_pelajaran;
-            const nilaiSiswa = nilaiAkademik.find((n) => n.pelajaran === namaMapel);
-            const score = nilaiSiswa?.nilai ?? 0;
+            const namaMapels = ps.mataPelajaranPendukung.map((m: any) => m.nama_mata_pelajaran);
+            const matchedNilai = nilaiAkademik.filter((n) => namaMapels.includes(n.pelajaran));
+            const score = matchedNilai.length > 0
+                ? Math.round(matchedNilai.reduce((sum, n) => sum + n.nilai, 0) / matchedNilai.length)
+                : 0;
 
             const akademikSubs = sortedSubs(subKriteriaList, akademikKriteria.id);
-            const idx = score >= 90 ? 0 : score >= 80 ? 1 : score >= 70 ? 2 : score >= 60 ? 3 : akademikSubs.length - 1;
+            const idx = score >= 96 ? 0 : score >= 91 ? 1 : score >= 85 ? 2 : score >= 80 ? 3 : akademikSubs.length - 1;
             const sub = akademikSubs[Math.min(idx, akademikSubs.length - 1)];
             if (sub) pushResult(ps.id, akademikKriteria, sub);
 
-            console.log({ prodi: ps.nama_program_studi, mapel: namaMapel, score, selectedSub: sub?.nama_sub_kriteria });
+            console.log({ prodi: ps.nama_program_studi, mapels: namaMapels, score, selectedSub: sub?.nama_sub_kriteria });
         }
 
         // --- Biaya Kuliah ---

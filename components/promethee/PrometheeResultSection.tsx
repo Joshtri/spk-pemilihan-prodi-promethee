@@ -145,50 +145,54 @@ export function PrometheeResultSection({
                   value={detail.programStudiId}
                 >
                   <AccordionTrigger className="hover:no-underline">
-                    <div className="flex items-center space-x-3">
+                    <div className="flex items-center flex-wrap gap-2">
                       <span className="font-medium">{detail.nama}</span>
-                      <Badge variant="outline">
+                      <Badge variant="outline" className="text-xs">
                         Net Flow: {formatFlow(detail.netFlow)}
                       </Badge>
-                      <Badge variant="outline">
-                        Leaving: {formatFlow(detail.leavingFlow)}
+                      <Badge variant="outline" className="text-xs text-muted-foreground">
+                        φ+: {formatFlow(detail.leavingFlow)}
                       </Badge>
-                      <Badge variant="outline">
-                        Entering: {formatFlow(detail.enteringFlow)}
+                      <Badge variant="outline" className="text-xs text-muted-foreground">
+                        φ−: {formatFlow(detail.enteringFlow)}
                       </Badge>
-                    </div>
+                    </div>  
                   </AccordionTrigger>
                   <AccordionContent>
                     <div className="bg-muted p-4 rounded-lg">
-                      <h4 className="font-medium mb-2">Kriteria:</h4>
                       <Table>
                         <TableHeader>
                           <TableRow>
                             <TableHead>Kriteria</TableHead>
-                            <TableHead>Subkriteria</TableHead>
-                            <TableHead>Bobot Sub</TableHead>
-                            <TableHead>Bobot Kriteria</TableHead>
+                            <TableHead>Kode Sub-Kriteria</TableHead>
+                            <TableHead className="text-center">Nilai (1–5)</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {detail.criteria.map((crit, idx) => (
-                            <TableRow key={`${crit.name}-${idx}`}>
-                              <TableCell className="font-medium">
-                                {crit.name}
-                              </TableCell>
-                              <TableCell>{crit.subName || "-"}</TableCell>
-                              <TableCell>
-                                {crit.value != null
-                                  ? Math.round(crit.value)
-                                  : "-"}
-                              </TableCell>
-                              <TableCell>
-                                {crit.weight != null
-                                  ? Math.round(crit.weight)
-                                  : "-"}
-                              </TableCell>
-                            </TableRow>
-                          ))}
+                          {detail.criteria.map((crit, idx) => {
+                            const val = crit.value != null ? Math.round(crit.value) : null;
+                            const badgeClass =
+                              val === 5 ? "bg-emerald-100 text-emerald-700 border-emerald-300" :
+                              val === 4 ? "bg-green-100 text-green-700 border-green-300" :
+                              val === 3 ? "bg-yellow-100 text-yellow-700 border-yellow-300" :
+                              val === 2 ? "bg-orange-100 text-orange-700 border-orange-300" :
+                              "bg-red-100 text-red-700 border-red-300";
+                            return (
+                              <TableRow key={`${crit.name}-${idx}`}>
+                                <TableCell className="font-medium">{crit.name}</TableCell>
+                                <TableCell>
+                                  <span className="font-mono text-sm">{crit.subName || "-"}</span>
+                                </TableCell>
+                                <TableCell className="text-center">
+                                  {val != null ? (
+                                    <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold border ${badgeClass}`}>
+                                      {val}
+                                    </span>
+                                  ) : "-"}
+                                </TableCell>
+                              </TableRow>
+                            );
+                          })}
                         </TableBody>
                       </Table>
                     </div>
@@ -197,21 +201,17 @@ export function PrometheeResultSection({
               ))}
             </Accordion>
 
-            <div className="mt-6 bg-blue-50 p-4 rounded-lg border border-blue-200">
-              <div className="flex items-start">
-                <Info className="h-5 w-5 text-blue-600 mr-2 mt-0.5 flex-shrink-0" />
-                <div>
-                  <h4 className="font-medium text-blue-800">
-                    Penjelasan Metode PROMETHEE
-                  </h4>
-                  <p className="text-sm text-blue-700 mt-1">
-                    Metode PROMETHEE menghitung preferensi berdasarkan kriteria
-                    yang ditentukan. Net Flow dihitung dari selisih Leaving Flow
-                    (preferensi terhadap alternatif lain) dan Entering Flow
-                    (preferensi dari alternatif lain).
-                  </p>
-                </div>
+            <div className="mt-6 bg-blue-50 p-4 rounded-lg border border-blue-200 space-y-2">
+              <div className="flex items-center gap-2">
+                <Info className="h-4 w-4 text-blue-600 flex-shrink-0" />
+                <h4 className="font-medium text-blue-800 text-sm">Cara Membaca Hasil</h4>
               </div>
+              <ul className="text-sm text-blue-700 space-y-1 ml-6 list-disc">
+                <li><strong>Nilai (1–5)</strong>: skor sub-kriteria yang dipilih berdasarkan data siswa — makin tinggi makin cocok.</li>
+                <li><strong>Net Flow</strong>: skor akhir PROMETHEE. Makin besar = makin direkomendasikan.</li>
+                <li><strong>φ+ (leaving flow)</strong>: seberapa kuat program studi ini unggul dibanding pilihan lain.</li>
+                <li><strong>φ− (entering flow)</strong>: seberapa kuat program studi lain unggul dibanding yang ini.</li>
+              </ul>
             </div>
           </CardContent>
         )}
