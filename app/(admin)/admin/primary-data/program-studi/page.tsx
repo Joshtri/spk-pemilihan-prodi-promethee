@@ -1,15 +1,18 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { toast } from "sonner";
-import { Pencil } from "lucide-react";
+import { Pencil, Search, X } from "lucide-react";
 
 import { PageHeader } from "@/components/common/PageHeader";
 import { EmptyState } from "@/components/common/EmptyState";
 import { TableActions } from "@/components/common/TableActions";
 import { DialogTrigger } from "@/components/ui/dialog";
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Combobox } from "@/components/ui/combobox";
 import {
   Table,
   TableBody,
@@ -18,7 +21,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { CreateOrEditProgramStudiDialog } from "@/components/primaryData/dialog/CreateOrEditProgramStudiDialog"; // ⛳ ganti sesuai strukturmu
+import { CreateOrEditProgramStudiDialog } from "@/components/primaryData/dialog/CreateOrEditProgramStudiDialog";
 
 interface ProgramStudi {
   id: string;
@@ -26,18 +29,24 @@ interface ProgramStudi {
   biaya_kuliah: number;
   akreditasi: string;
   createdAt: string;
+  universitasId?: string;
+  universitas?: { id: string; nama: string } | null;
 }
+
+const AKREDITASI_OPTIONS = ["A", "B", "C", "Tidak Terakreditasi"];
 
 export default function ProgramStudiPage() {
   const [data, setData] = useState<ProgramStudi[]>([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [filterUniversitas, setFilterUniversitas] = useState("semua");
+  const [filterAkreditasi, setFilterAkreditasi] = useState("semua");
 
   const fetchData = async () => {
     try {
       const res = await axios.get("/api/program-studi");
       setData(res.data?.data || []);
-    } catch (err) {
-      console.error("Gagal ambil data program studi:", err);
+    } catch {
       toast.error("Gagal memuat data program studi");
     } finally {
       setLoading(false);
@@ -47,6 +56,46 @@ export default function ProgramStudiPage() {
   useEffect(() => {
     fetchData();
   }, []);
+
+  const universitasOptions = useMemo(() => {
+    const map = new Map<string, string>();
+    data.forEach((p) => {
+      if (p.universitas) map.set(p.universitas.id, p.universitas.nama);
+    });
+    return [
+      { value: "semua", label: "Semua Universitas" },
+      ...Array.from(map.entries())
+        .sort((a, b) => a[1].localeCompare(b[1]))
+        .map(([id, nama]) => ({ value: id, label: nama })),
+    ];
+  }, [data]);
+
+  const akreditasiOptions = [
+    { value: "semua", label: "Semua Akreditasi" },
+    ...AKREDITASI_OPTIONS.map((o) => ({ value: o, label: o })),
+  ];
+
+  const filtered = useMemo(() => {
+    return data.filter((p) => {
+      const matchSearch = p.nama_program_studi
+        .toLowerCase()
+        .includes(search.toLowerCase());
+      const matchUniv =
+        filterUniversitas === "semua" || p.universitas?.id === filterUniversitas;
+      const matchAkreditasi =
+        filterAkreditasi === "semua" || p.akreditasi === filterAkreditasi;
+      return matchSearch && matchUniv && matchAkreditasi;
+    });
+  }, [data, search, filterUniversitas, filterAkreditasi]);
+
+  const hasActiveFilter =
+    search !== "" || filterUniversitas !== "semua" || filterAkreditasi !== "semua";
+
+  const resetFilters = () => {
+    setSearch("");
+    setFilterUniversitas("semua");
+    setFilterAkreditasi("semua");
+  };
 
   return (
     <div className="space-y-6">
@@ -59,79 +108,137 @@ export default function ProgramStudiPage() {
           { label: "Program Studi" },
         ]}
         actions={
-          <CreateOrEditProgramStudiDialog
-            mode="create"
-            onCompleted={fetchData}
-          />
+          <CreateOrEditProgramStudiDialog mode="create" onCompleted={fetchData} />
         }
       />
 
       {loading ? (
         <p>Memuat data...</p>
-      ) : data.length === 0 ? (
-        <EmptyState
-          title="Tidak ada program studi"
-          description="Belum ada data program studi. Tambahkan sekarang."
-          actionLabel="Tambah Program Studi"
-          action={() => {}}
-        />
       ) : (
-        <div className="rounded-md border bg-white dark:bg-zinc-900">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Nama Program Studi</TableHead>
-                <TableHead>Biaya Kuliah</TableHead>
-                <TableHead>Akreditasi</TableHead>
-                <TableHead>Dibuat</TableHead>
-                <TableHead>Aksi</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {data.map((prodi) => (
-                <TableRow key={prodi.id}>
-                  <TableCell>{prodi.nama_program_studi}</TableCell>
-                  <TableCell>
-                    Rp {prodi.biaya_kuliah.toLocaleString("id-ID")}
-                  </TableCell>
-                  <TableCell>{prodi.akreditasi}</TableCell>
-                  <TableCell>
-                    {new Date(prodi.createdAt).toLocaleDateString("id-ID")}
-                  </TableCell>
-                  <TableCell>
-                    <TableActions
-                      onEdit={
-                        <CreateOrEditProgramStudiDialog
-                          mode="edit"
-                          initialValues={prodi}
-                          trigger={
-                            <DialogTrigger asChild>
-                              <DropdownMenuItem
-                                onSelect={(e) => e.preventDefault()}
-                              >
-                                <Pencil className="mr-2 h-4 w-4" />
-                                Edit
-                              </DropdownMenuItem>
-                            </DialogTrigger>
+        <>
+          {/* Search & Filter Bar */}
+          {data.length > 0 && (
+            <div className="flex flex-col sm:flex-row gap-3">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Cari nama program studi..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
+
+              <Combobox
+                options={universitasOptions}
+                value={filterUniversitas}
+                onValueChange={setFilterUniversitas}
+                placeholder="Semua Universitas"
+                searchPlaceholder="Cari universitas..."
+                emptyText="Universitas tidak ditemukan."
+                className="w-full sm:w-52"
+              />
+
+              <Combobox
+                options={akreditasiOptions}
+                value={filterAkreditasi}
+                onValueChange={setFilterAkreditasi}
+                placeholder="Semua Akreditasi"
+                searchPlaceholder="Cari akreditasi..."
+                emptyText="Tidak ditemukan."
+                className="w-full sm:w-44"
+              />
+
+              {hasActiveFilter && (
+                <Button variant="ghost" size="icon" onClick={resetFilters} title="Reset filter">
+                  <X className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+          )}
+
+          {/* Result count */}
+          {data.length > 0 && (
+            <p className="text-sm text-muted-foreground -mt-2">
+              Menampilkan {filtered.length} dari {data.length} program studi
+            </p>
+          )}
+
+          {/* Empty state: no data at all */}
+          {data.length === 0 ? (
+            <EmptyState
+              title="Tidak ada program studi"
+              description="Belum ada data program studi. Tambahkan sekarang."
+              actionLabel="Tambah Program Studi"
+              action={() => {}}
+            />
+          ) : filtered.length === 0 ? (
+            // Empty state: filter returned nothing
+            <div className="flex flex-col items-center justify-center py-16 text-muted-foreground rounded-md border bg-white dark:bg-zinc-900">
+              <Search className="h-10 w-10 mb-3 opacity-40" />
+              <p className="font-medium text-foreground">Tidak ada hasil ditemukan</p>
+              <p className="text-sm mt-1">Coba ubah kata kunci atau filter yang digunakan</p>
+              <Button variant="outline" size="sm" className="mt-4" onClick={resetFilters}>
+                Reset Filter
+              </Button>
+            </div>
+          ) : (
+            <div className="rounded-md border bg-white dark:bg-zinc-900">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Nama Program Studi</TableHead>
+                    <TableHead>Universitas</TableHead>
+                    <TableHead>Biaya Kuliah</TableHead>
+                    <TableHead>Akreditasi</TableHead>
+                    <TableHead>Dibuat</TableHead>
+                    <TableHead>Aksi</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filtered.map((prodi) => (
+                    <TableRow key={prodi.id}>
+                      <TableCell className="font-medium">{prodi.nama_program_studi}</TableCell>
+                      <TableCell>{prodi.universitas?.nama || "-"}</TableCell>
+                      <TableCell>Rp {prodi.biaya_kuliah.toLocaleString("id-ID")}</TableCell>
+                      <TableCell>{prodi.akreditasi}</TableCell>
+                      <TableCell>
+                        {new Date(prodi.createdAt).toLocaleDateString("id-ID")}
+                      </TableCell>
+                      <TableCell>
+                        <TableActions
+                          onEdit={
+                            <CreateOrEditProgramStudiDialog
+                              mode="edit"
+                              initialValues={{ ...prodi, universitasId: prodi.universitas?.id }}
+                              trigger={
+                                <DialogTrigger asChild>
+                                  <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                    <Pencil className="mr-2 h-4 w-4" />
+                                    Edit
+                                  </DropdownMenuItem>
+                                </DialogTrigger>
+                              }
+                              onCompleted={fetchData}
+                            />
                           }
-                          onCompleted={fetchData}
+                          onDelete={{
+                            message: `Hapus program studi "${prodi.nama_program_studi}"?`,
+                            onConfirm: async () => {
+                              await axios.delete(`/api/program-studi/${prodi.id}`);
+                              toast.success("Data berhasil dihapus");
+                              fetchData();
+                            },
+                          }}
                         />
-                      }
-                      onDelete={{
-                        message: `Hapus program studi "${prodi.nama_program_studi}"?`,
-                        onConfirm: async () => {
-                          await axios.delete(`/api/program-studi/${prodi.id}`);
-                          toast.success("Data berhasil dihapus");
-                          fetchData();
-                        },
-                      }}
-                    />
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </>
       )}
     </div>
   );

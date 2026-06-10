@@ -10,13 +10,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
-import { Menu, Search, Moon, Sun } from "lucide-react";
+import { Menu } from "lucide-react";
 import axios from "axios";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 
 interface AppHeaderProps {
@@ -32,7 +30,6 @@ interface User {
 
 export default function AppHeader({ onMenuClick, role }: AppHeaderProps) {
   const router = useRouter();
-  const { theme, setTheme } = useTheme();
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
@@ -54,7 +51,7 @@ export default function AppHeader({ onMenuClick, role }: AppHeaderProps) {
   return (
     <header className="sticky top-0 z-50 flex h-16 items-center justify-between border-b bg-background px-4 md:px-6">
       {/* Left */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center">
         <Button
           variant="ghost"
           size="icon"
@@ -64,19 +61,6 @@ export default function AppHeader({ onMenuClick, role }: AppHeaderProps) {
           <Menu className="h-5 w-5" />
           <span className="sr-only">Toggle Menu</span>
         </Button>
-
-        <div className="hidden md:block w-[300px] lg:w-[400px]">
-          <form>
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                type="search"
-                placeholder="Cari..."
-                className="w-full bg-background pl-9"
-              />
-            </div>
-          </form>
-        </div>
       </div>
 
       {/* Right */}

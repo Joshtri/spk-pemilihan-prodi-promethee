@@ -24,6 +24,16 @@ model User {
   tesMinat            TesMinatSiswa[]
 }
 
+model Universitas {
+  id           String         @id @default(uuid()) @db.VarChar(80)
+  nama         String
+  lokasi       String?
+  keterangan   String?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  programStudi ProgramStudi[]
+}
+
 model ProgramStudi {
   id                     String                   @id @default(uuid()) @db.VarChar(80)
   nama_program_studi     String
@@ -31,6 +41,7 @@ model ProgramStudi {
   akreditasi             String                   @db.VarChar(20)
   keterangan             String?
   rumpunIlmuId           String?                  @db.VarChar(80)
+  universitasId          String?                  @db.VarChar(80)
   createdAt              DateTime                 @default(now())
   updatedAt              DateTime                 @updatedAt
   EvaluasiKriteria       EvaluasiKriteria[]
@@ -38,6 +49,7 @@ model ProgramStudi {
   mataPelajaranPendukung MataPelajaranPendukung[]
   PilihanProgramStudi    PilihanProgramStudi[]
   RumpunIlmu             RumpunIlmu?              @relation(fields: [rumpunIlmuId], references: [id])
+  universitas            Universitas?             @relation(fields: [universitasId], references: [id])
   riasec                 ProgramStudiRiasec[]
 }
 

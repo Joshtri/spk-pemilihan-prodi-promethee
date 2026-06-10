@@ -1,5 +1,6 @@
 import {
     BookOpen,
+    Building2,
     ChartBar,
     GraduationCap,
     Layout,
@@ -92,7 +93,11 @@ export const navByRole: Record<Role, NavSection[]> = {
         {
             title: "Primary Data",
             items: [
-
+                {
+                    title: "Universitas",
+                    href: "/admin/primary-data/universitas",
+                    icon: React.createElement(Building2, { className: "h-4 w-4" }),
+                },
                 {
                     title: "Program Studi",
                     href: "/admin/primary-data/program-studi",

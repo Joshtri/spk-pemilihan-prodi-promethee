@@ -5,6 +5,9 @@ export async function GET() {
     try {
         const data = await prisma.programStudi.findMany({
             orderBy: { createdAt: "desc" },
+            include: {
+                universitas: { select: { id: true, nama: true } },
+            },
         });
         return NextResponse.json({ data });
     } catch (error) {
@@ -36,6 +39,10 @@ export async function POST(req: Request) {
                 akreditasi: body.akreditasi,
                 keterangan: body.keterangan || null,
                 rumpunIlmuId: body.rumpunIlmuId || null,
+                universitasId: body.universitasId || null,
+            },
+            include: {
+                universitas: { select: { id: true, nama: true } },
             },
         });
 

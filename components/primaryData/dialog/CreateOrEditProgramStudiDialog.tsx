@@ -24,6 +24,7 @@ interface Props {
     akreditasi: string;
     keterangan?: string;
     rumpunIlmuId?: string;
+    universitasId?: string;
   };
   onCompleted?: () => void;
 }
@@ -34,9 +35,10 @@ interface FormValues {
   akreditasi: string;
   keterangan?: string;
   rumpunIlmuId?: string;
+  universitasId?: string;
 }
 
-interface RumpunIlmuOption {
+interface SelectOption {
   value: string;
   label: string;
 }
@@ -48,10 +50,10 @@ export function CreateOrEditProgramStudiDialog({
   onCompleted,
 }: Props) {
   const [open, setOpen] = useState(false);
-  const [rumpunIlmuOptions, setRumpunIlmuOptions] = useState<
-    RumpunIlmuOption[]
-  >([]);
+  const [rumpunIlmuOptions, setRumpunIlmuOptions] = useState<SelectOption[]>([]);
+  const [universitasOptions, setUniversitasOptions] = useState<SelectOption[]>([]);
   const [isLoadingRumpunIlmu, setIsLoadingRumpunIlmu] = useState(false);
+  const [isLoadingUniversitas, setIsLoadingUniversitas] = useState(false);
 
   const {
     control,
@@ -65,32 +67,39 @@ export function CreateOrEditProgramStudiDialog({
       akreditasi: "",
       keterangan: "",
       rumpunIlmuId: "",
+      universitasId: "",
     },
   });
 
-  // Fetch rumpun ilmu options when dialog opens
+  // Fetch dropdown options when dialog opens
   useEffect(() => {
-    const fetchRumpunIlmu = async () => {
-      if (!open) return;
+    if (!open) return;
 
+    const fetchOptions = async () => {
       try {
         setIsLoadingRumpunIlmu(true);
-        const res = await axios.get("/api/rumpun-ilmu");
-        const rumpunOptions = res.data.data.map((item: any) => ({
-          value: item.id,
-          label: item.nama,
-        }));
+        setIsLoadingUniversitas(true);
 
-        setRumpunIlmuOptions(rumpunOptions);
-      } catch (error) {
-        console.error("Failed to fetch rumpun ilmu:", error);
-        toast.error("Gagal memuat data rumpun ilmu");
+        const [rumpunRes, univRes] = await Promise.all([
+          axios.get("/api/rumpun-ilmu"),
+          axios.get("/api/universitas"),
+        ]);
+
+        setRumpunIlmuOptions(
+          rumpunRes.data.data.map((item: any) => ({ value: item.id, label: item.nama }))
+        );
+        setUniversitasOptions(
+          univRes.data.data.map((item: any) => ({ value: item.id, label: item.nama }))
+        );
+      } catch {
+        toast.error("Gagal memuat data pilihan");
       } finally {
         setIsLoadingRumpunIlmu(false);
+        setIsLoadingUniversitas(false);
       }
     };
 
-    fetchRumpunIlmu();
+    fetchOptions();
   }, [open]);
 
   // Reset form with initial values
@@ -102,6 +111,7 @@ export function CreateOrEditProgramStudiDialog({
         akreditasi: initialValues.akreditasi,
         keterangan: initialValues.keterangan ?? "",
         rumpunIlmuId: initialValues.rumpunIlmuId ?? "",
+        universitasId: initialValues.universitasId ?? "",
       });
     } else {
       reset({
@@ -110,6 +120,7 @@ export function CreateOrEditProgramStudiDialog({
         akreditasi: "",
         keterangan: "",
         rumpunIlmuId: "",
+        universitasId: "",
       });
     }
   }, [initialValues, reset, open]);
@@ -121,8 +132,9 @@ export function CreateOrEditProgramStudiDialog({
       // Prepare the payload
       const payload = {
         ...values,
-        biaya_kuliah: Math.round(Number(values.biaya_kuliah)), // Ensure integer
-        rumpunIlmuId: values.rumpunIlmuId || null, // Convert empty string to null
+        biaya_kuliah: Math.round(Number(values.biaya_kuliah)),
+        rumpunIlmuId: values.rumpunIlmuId || null,
+        universitasId: values.universitasId || null,
       };
 
       if (mode === "edit" && initialValues?.id) {
@@ -225,15 +237,22 @@ export function CreateOrEditProgramStudiDialog({
           />
 
           <FormField
+            name="universitasId"
+            label="Universitas"
+            type="select"
+            control={control}
+            placeholder={isLoadingUniversitas ? "Memuat data universitas..." : "Pilih universitas"}
+            options={universitasOptions}
+            disabled={isLoadingUniversitas}
+            rules={{ required: "Universitas wajib dipilih" }}
+          />
+
+          <FormField
             name="rumpunIlmuId"
             label="Rumpun Ilmu"
             type="select"
             control={control}
-            placeholder={
-              isLoadingRumpunIlmu
-                ? "Memuat data rumpun ilmu..."
-                : "Pilih rumpun ilmu"
-            }
+            placeholder={isLoadingRumpunIlmu ? "Memuat data rumpun ilmu..." : "Pilih rumpun ilmu"}
             options={rumpunIlmuOptions}
             disabled={isLoadingRumpunIlmu}
             rules={{ required: "Rumpun ilmu wajib dipilih" }}
@@ -264,7 +283,7 @@ export function CreateOrEditProgramStudiDialog({
             </Button>
             <Button
               type="submit"
-              disabled={isSubmitting || isLoadingRumpunIlmu}
+              disabled={isSubmitting || isLoadingRumpunIlmu || isLoadingUniversitas}
             >
               {isSubmitting
                 ? "Menyimpan..."

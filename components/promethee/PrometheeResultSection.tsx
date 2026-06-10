@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Calculator, Info, Trophy } from "lucide-react";
+import { Building2, Calculator, Info, Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { useState } from "react";
@@ -22,6 +22,7 @@ import { useState } from "react";
 interface RankingResult {
   programStudiId: string;
   nama: string;
+  universitas_nama?: string | null;
   netFlow: number | null;
   leavingFlow: number | null;
   enteringFlow: number | null;
@@ -30,6 +31,7 @@ interface RankingResult {
 interface CalculationDetail {
   programStudiId: string;
   nama: string;
+  universitas_nama?: string | null;
   criteria: {
     name: string;
     value: number;
@@ -103,25 +105,26 @@ export function PrometheeResultSection({
               <p className="text-base text-yellow-900">
                 Berdasarkan perhitungan metode PROMETHEE, program studi yang paling direkomendasikan
                 untuk kamu adalah{" "}
-                <span className="font-bold">
-                  {hasilRanking[0].nama}
-                </span>{" "}
+                <span className="font-bold">{hasilRanking[0].nama}</span>
+                {hasilRanking[0].universitas_nama && (
+                  <span className="font-normal"> di <span className="font-semibold">{hasilRanking[0].universitas_nama}</span></span>
+                )}{" "}
                 dengan <em>net flow</em> tertinggi sebesar{" "}
                 <span className="font-semibold">{formatFlow(hasilRanking[0].netFlow)}</span>.
               </p>
               {hasilRanking.length > 1 && (
                 <p className="text-sm text-yellow-700 mt-2">
                   Alternatif berikutnya:{" "}
-                  {hasilRanking
-                    .slice(1)
-                    .map((item, i) => (
-                      <span key={item.programStudiId}>
-                        {i > 0 && ", "}
-                        <span className="font-medium">{item.nama}</span>{" "}
-                        <span className="text-yellow-600">({formatFlow(item.netFlow)})</span>
-                      </span>
-                    ))}
-                  .
+                  {hasilRanking.slice(1).map((item, i) => (
+                    <span key={item.programStudiId}>
+                      {i > 0 && ", "}
+                      <span className="font-medium">{item.nama}</span>
+                      {item.universitas_nama && (
+                        <span className="font-normal opacity-80"> ({item.universitas_nama})</span>
+                      )}{" "}
+                      <span className="text-yellow-600">[{formatFlow(item.netFlow)}]</span>
+                    </span>
+                  ))}.
                 </p>
               )}
             </div>
@@ -135,7 +138,7 @@ export function PrometheeResultSection({
                   index
                 )}`}
               >
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 min-w-0">
                   <div className="w-8 h-8 flex items-center justify-center rounded-full bg-white/20 font-bold shrink-0">
                     {index + 1}
                   </div>
@@ -144,7 +147,15 @@ export function PrometheeResultSection({
                       {altCodeMap[item.programStudiId]}
                     </span>
                   )}
-                  <span className="font-medium">{item.nama}</span>
+                  <div className="min-w-0">
+                    <p className="font-semibold leading-snug">{item.nama}</p>
+                    {item.universitas_nama && (
+                      <div className="flex items-center gap-1 mt-0.5 opacity-80">
+                        <Building2 className="h-3 w-3 shrink-0" />
+                        <span className="text-xs truncate">{item.universitas_nama}</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <div className="text-sm shrink-0">
                   Skor:{" "}
@@ -187,23 +198,33 @@ export function PrometheeResultSection({
                   value={detail.programStudiId}
                 >
                   <AccordionTrigger className="hover:no-underline">
-                    <div className="flex items-center flex-wrap gap-2">
+                    <div className="flex items-start flex-wrap gap-2 text-left">
                       {altCodeMap[detail.programStudiId] && (
-                        <span className="font-mono text-xs font-bold bg-muted px-1.5 py-0.5 rounded border">
+                        <span className="font-mono text-xs font-bold bg-muted px-1.5 py-0.5 rounded border shrink-0">
                           {altCodeMap[detail.programStudiId]}
                         </span>
                       )}
-                      <span className="font-medium">{detail.nama}</span>
-                      <Badge variant="outline" className="text-xs">
-                        Net Flow: {formatFlow(detail.netFlow)}
-                      </Badge>
-                      <Badge variant="outline" className="text-xs text-muted-foreground">
-                        φ+: {formatFlow(detail.leavingFlow)}
-                      </Badge>
-                      <Badge variant="outline" className="text-xs text-muted-foreground">
-                        φ−: {formatFlow(detail.enteringFlow)}
-                      </Badge>
-                    </div>  
+                      <div className="flex flex-col gap-0.5 min-w-0">
+                        <span className="font-medium leading-snug">{detail.nama}</span>
+                        {detail.universitas_nama && (
+                          <div className="flex items-center gap-1 text-muted-foreground">
+                            <Building2 className="h-3 w-3 shrink-0" />
+                            <span className="text-xs">{detail.universitas_nama}</span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex flex-wrap gap-1.5 ml-auto">
+                        <Badge variant="outline" className="text-xs">
+                          Net Flow: {formatFlow(detail.netFlow)}
+                        </Badge>
+                        <Badge variant="outline" className="text-xs text-muted-foreground">
+                          φ+: {formatFlow(detail.leavingFlow)}
+                        </Badge>
+                        <Badge variant="outline" className="text-xs text-muted-foreground">
+                          φ−: {formatFlow(detail.enteringFlow)}
+                        </Badge>
+                      </div>
+                    </div>
                   </AccordionTrigger>
                   <AccordionContent>
                     <div className="bg-muted p-4 rounded-lg">

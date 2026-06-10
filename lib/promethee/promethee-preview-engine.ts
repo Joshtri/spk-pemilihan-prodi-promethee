@@ -20,12 +20,17 @@ export async function runPrometheePreview(userId: string, programStudiIds: strin
     if (programStudiIds.length === 1) {
         const program = await prisma.programStudi.findUnique({
             where: { id: programStudiIds[0] },
-            select: { id: true, nama_program_studi: true },
+            select: {
+                id: true,
+                nama_program_studi: true,
+                universitas: { select: { nama: true } },
+            },
         });
 
         const result = [{
             programStudiId: programStudiIds[0],
             nama: program?.nama_program_studi ?? "Unknown",
+            universitas_nama: program?.universitas?.nama ?? null,
             netFlow: 0,
             leavingFlow: 0,
             enteringFlow: 0,
@@ -107,20 +112,28 @@ export async function runPrometheePreview(userId: string, programStudiIds: strin
     // Sort by netFlow (descending)
     netFlows.sort((a, b) => b.netFlow - a.netFlow);
 
-    // Fetch program names
+    // Fetch program names + universitas
     const programMap = await prisma.programStudi.findMany({
         where: { id: { in: ids } },
-        select: { id: true, nama_program_studi: true },
+        select: {
+            id: true,
+            nama_program_studi: true,
+            universitas: { select: { nama: true } },
+        },
     });
 
     // Format results
-    const results = netFlows.map((n) => ({
-        programStudiId: n.programStudiId,
-        nama: programMap.find((p) => p.id === n.programStudiId)?.nama_program_studi ?? "",
-        netFlow: Number.isFinite(n.netFlow) ? n.netFlow : 0,
-        leavingFlow: Number.isFinite(n.leavingFlow) ? n.leavingFlow : 0,
-        enteringFlow: Number.isFinite(n.enteringFlow) ? n.enteringFlow : 0,
-    }));
+    const results = netFlows.map((n) => {
+        const p = programMap.find((p) => p.id === n.programStudiId);
+        return {
+            programStudiId: n.programStudiId,
+            nama: p?.nama_program_studi ?? "",
+            universitas_nama: p?.universitas?.nama ?? null,
+            netFlow: Number.isFinite(n.netFlow) ? n.netFlow : 0,
+            leavingFlow: Number.isFinite(n.leavingFlow) ? n.leavingFlow : 0,
+            enteringFlow: Number.isFinite(n.enteringFlow) ? n.enteringFlow : 0,
+        };
+    });
 
     if (!includeDetails) {
         return { data: results };
@@ -135,6 +148,7 @@ export async function runPrometheePreview(userId: string, programStudiIds: strin
         return {
             programStudiId: id,
             nama: program?.nama_program_studi ?? "",
+            universitas_nama: program?.universitas?.nama ?? null,
             criteria: mappingResults
                 .filter((item) => item.programStudiId === id)
                 .map((item) => ({

@@ -14,6 +14,7 @@ export async function GET(req: NextRequest) {
     try {
         const data = await prisma.programStudi.findUnique({
             where: { id },
+            include: { universitas: { select: { id: true, nama: true } } },
         });
 
         if (!data) {
@@ -61,6 +62,7 @@ export async function PUT(req: NextRequest) {
             akreditasi,
             keterangan,
             rumpunIlmuId,
+            universitasId,
         } = body;
 
         const updated = await prisma.programStudi.update({
@@ -71,7 +73,11 @@ export async function PUT(req: NextRequest) {
                 akreditasi,
                 keterangan,
                 rumpunIlmuId,
+                universitasId: universitasId || null,
                 updatedAt: new Date(),
+            },
+            include: {
+                universitas: { select: { id: true, nama: true } },
             },
         });
 
