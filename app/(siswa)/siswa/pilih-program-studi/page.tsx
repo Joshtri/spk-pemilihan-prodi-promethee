@@ -184,7 +184,7 @@ export default function PilihProgramStudiPage() {
             ))}
           </div>
         </div>
-        {universitasOptions.length > 1 && (
+        {/* {universitasOptions.length > 1 && (
           <div className="flex gap-2 flex-wrap">
             {universitasOptions.map((opt) => (
               <Button
@@ -198,7 +198,7 @@ export default function PilihProgramStudiPage() {
               </Button>
             ))}
           </div>
-        )}
+        )} */}
       </div>
 
       <p className="text-sm text-muted-foreground mt-3">

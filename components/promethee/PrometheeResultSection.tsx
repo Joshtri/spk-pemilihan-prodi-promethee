@@ -106,9 +106,9 @@ export function PrometheeResultSection({
                 Berdasarkan perhitungan metode PROMETHEE, program studi yang paling direkomendasikan
                 untuk kamu adalah{" "}
                 <span className="font-bold">{hasilRanking[0].nama}</span>
-                {hasilRanking[0].universitas_nama && (
-                  <span className="font-normal"> di <span className="font-semibold">{hasilRanking[0].universitas_nama}</span></span>
-                )}{" "}
+                {/* {hasilRanking[0].universitas_nama && (
+                  <span className="font-normal"></span>
+                )}{" "} */}
                 dengan <em>net flow</em> tertinggi sebesar{" "}
                 <span className="font-semibold">{formatFlow(hasilRanking[0].netFlow)}</span>.
               </p>
@@ -119,9 +119,9 @@ export function PrometheeResultSection({
                     <span key={item.programStudiId}>
                       {i > 0 && ", "}
                       <span className="font-medium">{item.nama}</span>
-                      {item.universitas_nama && (
+                      {/* {item.universitas_nama && (
                         <span className="font-normal opacity-80"> ({item.universitas_nama})</span>
-                      )}{" "}
+                      )}{" "} */}
                       <span className="text-yellow-600">[{formatFlow(item.netFlow)}]</span>
                     </span>
                   ))}.
