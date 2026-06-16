@@ -13,7 +13,7 @@ export enum MataPelajaranEnum {
     GEOGRAFI = "Geografi",
     TIK = "Teknologi Informasi dan Komunikasi (TIK)",
     PJOK = "Pendidikan Jasmani Olahraga, dan Kesehatan (PJOK)",
-    PSIKOLOGI = "Psikologi",
+    // PSIKOLOGI = "Psikologi",
     SENI_BUDAYA = "Seni Budaya",
 
 }

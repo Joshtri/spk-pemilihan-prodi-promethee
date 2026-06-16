@@ -158,7 +158,7 @@ export const navByRole: Record<Role, NavSection[]> = {
                     icon: React.createElement(School, { className: "h-4 w-4" }),
                 },
                 {
-                    title: "Hasil Rekomendasi",
+                    title: "Riwayat Hasil Rekomendasi",
                     href: "/siswa/hasil-rank",
                     icon: React.createElement(ChartBar, { className: "h-4 w-4" }),
                 },

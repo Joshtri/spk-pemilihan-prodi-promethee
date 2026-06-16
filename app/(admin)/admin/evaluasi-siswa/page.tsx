@@ -45,8 +45,8 @@ export default function EvaluasiSiswaPage() {
         setData(res.data.data);
         const allKriteria = new Set<string>(
           res.data.data.flatMap((s: SiswaEvaluasi) =>
-            s.penilaian.map((p) => p.kriteria.nama_kriteria)
-          )
+            s.penilaian.map((p) => p.kriteria.nama_kriteria),
+          ),
         );
 
         setKriteriaSet(Array.from(allKriteria));
@@ -59,14 +59,14 @@ export default function EvaluasiSiswaPage() {
       <PageHeader
         title="Evaluasi Kriteria Siswa"
         description="Halaman ini digunakan untuk menampilkan evaluasi kriteria siswa."
-        actions={
-          <Button
-            variant="outline"
-            onClick={() => router.push("/admin/evaluasi-siswa/create")}
-          >
-            Tambah Evaluasi
-          </Button>
-        }
+        // actions={
+        //   <Button
+        //     variant="outline"
+        //     onClick={() => router.push("/admin/evaluasi-siswa/create")}
+        //   >
+        //     Tambah Evaluasi
+        //   </Button>
+        // }
       />
       <Card className="p-6 mt-6">
         <div className="overflow-auto">
@@ -98,7 +98,7 @@ export default function EvaluasiSiswaPage() {
 
                   {kriteriaSet.map((kriteria) => {
                     const nilai = siswa.penilaian.find(
-                      (p) => p.kriteria.nama_kriteria === kriteria
+                      (p) => p.kriteria.nama_kriteria === kriteria,
                     );
                     return (
                       <TableCell key={kriteria}>
@@ -119,7 +119,7 @@ export default function EvaluasiSiswaPage() {
                       size="sm"
                       onClick={() =>
                         router.push(
-                          `/admin/evaluasi-siswa/tes-minat/create?userId=${siswa.id}`
+                          `/admin/evaluasi-siswa/tes-minat/create?userId=${siswa.id}`,
                         )
                       }
                     >

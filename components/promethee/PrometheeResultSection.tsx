@@ -56,7 +56,7 @@ export function PrometheeResultSection({
 }: Props) {
   // Build alternative code map: A1, A2, A3, ... based on submission order
   const altCodeMap = Object.fromEntries(
-    programStudiIds.map((id, i) => [id, `A${i + 1}`])
+    programStudiIds.map((id, i) => [id, `A${i + 1}`]),
   );
   const [showCalculation, setShowCalculation] = useState(false);
 
@@ -101,17 +101,28 @@ export function PrometheeResultSection({
           {/* Narasi rekomendasi */}
           {hasilRanking.length > 0 && (
             <div className="mb-6 rounded-lg border border-yellow-200 bg-yellow-50 px-5 py-4">
-              <p className="text-sm font-medium text-yellow-800 mb-1">Rekomendasi Utama</p>
-              <p className="text-base text-yellow-900">
-                Berdasarkan perhitungan metode PROMETHEE, program studi yang paling direkomendasikan
-                untuk kamu adalah{" "}
-                <span className="font-bold">{hasilRanking[0].nama}</span>
-                {/* {hasilRanking[0].universitas_nama && (
-                  <span className="font-normal"></span>
-                )}{" "} */}
-                dengan <em>net flow</em> tertinggi sebesar{" "}
-                <span className="font-semibold">{formatFlow(hasilRanking[0].netFlow)}</span>.
+              <p className="text-sm font-medium text-yellow-800 mb-1">
+                Rekomendasi Utama
               </p>
+              <p className="text-base text-yellow-900">
+                Berdasarkan perhitungan metode PROMETHEE, program studi yang
+                paling direkomendasikan untuk kamu adalah{" "}
+                <span className="font-bold">{hasilRanking[0].nama}</span>
+                {" "}dengan <em>net flow</em> tertinggi sebesar{" "}
+                <span className="font-semibold">
+                  {formatFlow(hasilRanking[0].netFlow)}
+                </span>
+                .
+              </p>
+
+              {/* Informasi tambahan hardcode universitas */}
+              <p className="text-sm text-yellow-700 mt-2">
+                Program studi ini juga tersedia di beberapa universitas terbesar
+                di Indonesia, antara lain Universitas Gadjah Mada, Universitas
+                Indonesia, Institut Teknologi Bandung, Universitas Airlangga,
+                dan Universitas Brawijaya.
+              </p>
+
               {hasilRanking.length > 1 && (
                 <p className="text-sm text-yellow-700 mt-2">
                   Alternatif berikutnya:{" "}
@@ -119,12 +130,12 @@ export function PrometheeResultSection({
                     <span key={item.programStudiId}>
                       {i > 0 && ", "}
                       <span className="font-medium">{item.nama}</span>
-                      {/* {item.universitas_nama && (
-                        <span className="font-normal opacity-80"> ({item.universitas_nama})</span>
-                      )}{" "} */}
-                      <span className="text-yellow-600">[{formatFlow(item.netFlow)}]</span>
+                      <span className="text-yellow-600">
+                        [{formatFlow(item.netFlow)}]
+                      </span>
                     </span>
-                  ))}.
+                  ))}
+                  .
                 </p>
               )}
             </div>
@@ -135,7 +146,7 @@ export function PrometheeResultSection({
               <div
                 key={item.programStudiId}
                 className={`p-4 rounded-md flex items-center justify-between ${getRankingColor(
-                  index
+                  index,
                 )}`}
               >
                 <div className="flex items-center gap-3 min-w-0">
@@ -152,7 +163,9 @@ export function PrometheeResultSection({
                     {item.universitas_nama && (
                       <div className="flex items-center gap-1 mt-0.5 opacity-80">
                         <Building2 className="h-3 w-3 shrink-0" />
-                        <span className="text-xs truncate">{item.universitas_nama}</span>
+                        <span className="text-xs truncate">
+                          {item.universitas_nama}
+                        </span>
                       </div>
                     )}
                   </div>
@@ -205,11 +218,15 @@ export function PrometheeResultSection({
                         </span>
                       )}
                       <div className="flex flex-col gap-0.5 min-w-0">
-                        <span className="font-medium leading-snug">{detail.nama}</span>
+                        <span className="font-medium leading-snug">
+                          {detail.nama}
+                        </span>
                         {detail.universitas_nama && (
                           <div className="flex items-center gap-1 text-muted-foreground">
                             <Building2 className="h-3 w-3 shrink-0" />
-                            <span className="text-xs">{detail.universitas_nama}</span>
+                            <span className="text-xs">
+                              {detail.universitas_nama}
+                            </span>
                           </div>
                         )}
                       </div>
@@ -217,10 +234,16 @@ export function PrometheeResultSection({
                         <Badge variant="outline" className="text-xs">
                           Net Flow: {formatFlow(detail.netFlow)}
                         </Badge>
-                        <Badge variant="outline" className="text-xs text-muted-foreground">
+                        <Badge
+                          variant="outline"
+                          className="text-xs text-muted-foreground"
+                        >
                           φ+: {formatFlow(detail.leavingFlow)}
                         </Badge>
-                        <Badge variant="outline" className="text-xs text-muted-foreground">
+                        <Badge
+                          variant="outline"
+                          className="text-xs text-muted-foreground"
+                        >
                           φ−: {formatFlow(detail.enteringFlow)}
                         </Badge>
                       </div>
@@ -233,30 +256,47 @@ export function PrometheeResultSection({
                           <TableRow>
                             <TableHead>Kriteria</TableHead>
                             <TableHead>Kode Sub-Kriteria</TableHead>
-                            <TableHead className="text-center">Nilai (1–5)</TableHead>
+                            <TableHead className="text-center">
+                              Nilai (1–5)
+                            </TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
                           {detail.criteria.map((crit, idx) => {
-                            const val = crit.value != null ? Math.round(crit.value) : null;
+                            const val =
+                              crit.value != null
+                                ? Math.round(crit.value)
+                                : null;
                             const badgeClass =
-                              val === 5 ? "bg-emerald-100 text-emerald-700 border-emerald-300" :
-                              val === 4 ? "bg-green-100 text-green-700 border-green-300" :
-                              val === 3 ? "bg-yellow-100 text-yellow-700 border-yellow-300" :
-                              val === 2 ? "bg-orange-100 text-orange-700 border-orange-300" :
-                              "bg-red-100 text-red-700 border-red-300";
+                              val === 5
+                                ? "bg-emerald-100 text-emerald-700 border-emerald-300"
+                                : val === 4
+                                  ? "bg-green-100 text-green-700 border-green-300"
+                                  : val === 3
+                                    ? "bg-yellow-100 text-yellow-700 border-yellow-300"
+                                    : val === 2
+                                      ? "bg-orange-100 text-orange-700 border-orange-300"
+                                      : "bg-red-100 text-red-700 border-red-300";
                             return (
                               <TableRow key={`${crit.name}-${idx}`}>
-                                <TableCell className="font-medium">{crit.name}</TableCell>
+                                <TableCell className="font-medium">
+                                  {crit.name}
+                                </TableCell>
                                 <TableCell>
-                                  <span className="font-mono text-sm">{crit.subName || "-"}</span>
+                                  <span className="font-mono text-sm">
+                                    {crit.subName || "-"}
+                                  </span>
                                 </TableCell>
                                 <TableCell className="text-center">
                                   {val != null ? (
-                                    <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold border ${badgeClass}`}>
+                                    <span
+                                      className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold border ${badgeClass}`}
+                                    >
                                       {val}
                                     </span>
-                                  ) : "-"}
+                                  ) : (
+                                    "-"
+                                  )}
                                 </TableCell>
                               </TableRow>
                             );
@@ -272,13 +312,27 @@ export function PrometheeResultSection({
             <div className="mt-6 bg-blue-50 p-4 rounded-lg border border-blue-200 space-y-2">
               <div className="flex items-center gap-2">
                 <Info className="h-4 w-4 text-blue-600 flex-shrink-0" />
-                <h4 className="font-medium text-blue-800 text-sm">Cara Membaca Hasil</h4>
+                <h4 className="font-medium text-blue-800 text-sm">
+                  Cara Membaca Hasil
+                </h4>
               </div>
               <ul className="text-sm text-blue-700 space-y-1 ml-6 list-disc">
-                <li><strong>Nilai (1–5)</strong>: skor sub-kriteria yang dipilih berdasarkan data siswa — makin tinggi makin cocok.</li>
-                <li><strong>Net Flow</strong>: skor akhir PROMETHEE. Makin besar = makin direkomendasikan.</li>
-                <li><strong>φ+ (leaving flow)</strong>: seberapa kuat program studi ini unggul dibanding pilihan lain.</li>
-                <li><strong>φ− (entering flow)</strong>: seberapa kuat program studi lain unggul dibanding yang ini.</li>
+                <li>
+                  <strong>Nilai (1–5)</strong>: skor sub-kriteria yang dipilih
+                  berdasarkan data siswa — makin tinggi makin cocok.
+                </li>
+                <li>
+                  <strong>Net Flow</strong>: skor akhir PROMETHEE. Makin besar =
+                  makin direkomendasikan.
+                </li>
+                <li>
+                  <strong>φ+ (leaving flow)</strong>: seberapa kuat program
+                  studi ini unggul dibanding pilihan lain.
+                </li>
+                <li>
+                  <strong>φ− (entering flow)</strong>: seberapa kuat program
+                  studi lain unggul dibanding yang ini.
+                </li>
               </ul>
             </div>
           </CardContent>
