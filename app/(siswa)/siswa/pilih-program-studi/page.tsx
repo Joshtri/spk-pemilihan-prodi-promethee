@@ -253,12 +253,12 @@ export default function PilihProgramStudiPage() {
                   </div>
 
                   <div className="space-y-2">
-                    {program.universitas && (
+                    {/* {program.universitas && (
                       <div className="flex items-center gap-2">
                         <Building2 className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                         <span className="text-xs text-muted-foreground truncate">{program.universitas.nama}</span>
                       </div>
-                    )}
+                    )} */}
                     <div className="flex items-center gap-2">
                       <Award className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                       <span className="text-xs text-muted-foreground">Akreditasi:</span>
