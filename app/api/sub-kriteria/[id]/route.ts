@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
-// Utility ambil ID dari URL
 const getIdFromPath = (req: NextRequest) => req.nextUrl.pathname.split("/").pop();
 
 export async function PUT(req: NextRequest) {
@@ -41,15 +40,43 @@ export async function DELETE(req: NextRequest) {
     }
 
     try {
-        const deleted = await prisma.subKriteria.delete({
-            where: { id },
+        // Check if referenced in calculation history
+        const hasilCount = await prisma.hasilPerhitungan.count({
+            where: { subKriteriaId: id },
         });
+
+        if (hasilCount > 0) {
+            return NextResponse.json(
+                {
+                    success: false,
+                    message: `Sub kriteria ini telah digunakan dalam ${hasilCount} riwayat perhitungan dan tidak dapat dihapus karena data riwayat harus tetap terjaga.`,
+                },
+                { status: 400 }
+            );
+        }
+
+        // Check if referenced in student evaluations
+        const evaluasiCount = await prisma.evaluasiKriteria.count({
+            where: { subKriteriaId: id },
+        });
+
+        if (evaluasiCount > 0) {
+            return NextResponse.json(
+                {
+                    success: false,
+                    message: `Sub kriteria ini telah digunakan dalam ${evaluasiCount} data evaluasi siswa dan tidak dapat dihapus.`,
+                },
+                { status: 400 }
+            );
+        }
+
+        const deleted = await prisma.subKriteria.delete({ where: { id } });
 
         return NextResponse.json({ success: true, data: deleted });
     } catch (error) {
         console.error("DELETE /sub-kriteria/[id] error:", error);
         return NextResponse.json(
-            { success: false, message: "Failed to delete sub kriteria" },
+            { success: false, message: "Gagal menghapus sub kriteria" },
             { status: 500 }
         );
     }

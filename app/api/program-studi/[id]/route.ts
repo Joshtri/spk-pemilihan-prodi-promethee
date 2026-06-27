@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
-// Ambil ID dari URL
 const extractId = (req: NextRequest) => req.nextUrl.pathname.split("/").pop();
 
 export async function GET(req: NextRequest) {
@@ -30,20 +29,61 @@ export async function GET(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
     const id = extractId(req);
+    const force = req.nextUrl.searchParams.get("force") === "true";
 
     if (!id) {
         return NextResponse.json({ error: "Missing ID" }, { status: 400 });
     }
 
     try {
-        await prisma.programStudi.delete({
+        const prodi = await prisma.programStudi.findUnique({
             where: { id },
+            select: { nama_program_studi: true },
         });
+
+        if (!prodi) {
+            return NextResponse.json(
+                { error: "Program studi tidak ditemukan" },
+                { status: 404 }
+            );
+        }
+
+        // Count recommendation history for this prodi
+        const historyCount = await prisma.hasilPerhitungan.count({
+            where: { programStudiId: id },
+        });
+
+        if (historyCount > 0 && !force) {
+            return NextResponse.json(
+                {
+                    hasHistory: true,
+                    count: historyCount,
+                    message: `Program studi ini memiliki ${historyCount} riwayat rekomendasi.`,
+                },
+                { status: 409 }
+            );
+        }
+
+        // If force=true with existing history: save snapshot before deletion
+        if (historyCount > 0 && force) {
+            await prisma.hasilPerhitungan.updateMany({
+                where: { programStudiId: id },
+                data: { programStudiNama: prodi.nama_program_studi },
+            });
+        }
+
+        // Delete prodi:
+        // - EvaluasiKriteria, PilihanProgramStudi, MataPelajaranPendukung → CASCADE
+        // - HasilPerhitungan.programStudiId → SET NULL (snapshot already saved)
+        await prisma.programStudi.delete({ where: { id } });
 
         return NextResponse.json({ success: true });
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : "Unknown error";
-        return NextResponse.json({ errorMessage }, { status: 500 });
+        return NextResponse.json(
+            { error: errorMessage, message: "Gagal menghapus program studi" },
+            { status: 500 }
+        );
     }
 }
 

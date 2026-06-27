@@ -24,6 +24,7 @@ import {
   ListChecks,
   ArrowRight,
   CircleCheck,
+  CheckSquare,
 } from "lucide-react";
 import { PrometheeResultSection } from "@/components/promethee/PrometheeResultSection";
 
@@ -90,6 +91,20 @@ export default function PilihProgramStudiPage() {
       const copy = new Set(prev);
       if (copy.has(id)) copy.delete(id);
       else copy.add(id);
+      return copy;
+    });
+  };
+
+  const allFilteredSelected = filtered.length > 0 && filtered.every((p) => selected.has(p.id));
+
+  const toggleSelectAll = () => {
+    setSelected((prev) => {
+      const copy = new Set(prev);
+      if (allFilteredSelected) {
+        filtered.forEach((p) => copy.delete(p.id));
+      } else {
+        filtered.forEach((p) => copy.add(p.id));
+      }
       return copy;
     });
   };
@@ -201,12 +216,23 @@ export default function PilihProgramStudiPage() {
         )} */}
       </div>
 
-      <p className="text-sm text-muted-foreground mt-3">
-        Menampilkan {filtered.length} dari {programs.length} program studi
-        {selected.size > 0 && (
-          <span className="ml-2 font-medium text-primary">· {selected.size} dipilih</span>
+      <div className="flex items-center justify-between mt-3">
+        <p className="text-sm text-muted-foreground">
+          Menampilkan {filtered.length} dari {programs.length} program studi
+          {selected.size > 0 && (
+            <span className="ml-2 font-medium text-primary">· {selected.size} dipilih</span>
+          )}
+        </p>
+        {filtered.length > 0 && (
+          <Button variant="outline" size="sm" onClick={toggleSelectAll}>
+            {allFilteredSelected ? (
+              <><X className="mr-1.5 h-3.5 w-3.5" /> Batal Pilih Semua</>
+            ) : (
+              <><CheckSquare className="mr-1.5 h-3.5 w-3.5" /> Pilih Semua ({filtered.length})</>
+            )}
+          </Button>
         )}
-      </p>
+      </div>
 
       {/* Program Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mt-4">

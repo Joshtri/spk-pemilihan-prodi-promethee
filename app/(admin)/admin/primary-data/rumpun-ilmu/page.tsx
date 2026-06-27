@@ -107,10 +107,10 @@ export default function RumpunIlmuPage() {
                         />
                       }
                       onDelete={{
-                        message: `Hapus rumpun "${item.nama}"?`,
+                        message: `Apakah Anda yakin ingin menghapus rumpun ilmu "${item.nama}"?`,
                         onConfirm: async () => {
                           await axios.delete(`/api/rumpun-ilmu/${item.id}`);
-                          toast.success("Data berhasil dihapus");
+                          toast.success("Rumpun ilmu berhasil dihapus");
                           fetchData();
                         },
                       }}

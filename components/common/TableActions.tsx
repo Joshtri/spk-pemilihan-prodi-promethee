@@ -20,10 +20,11 @@ interface TableActionsProps {
     confirmLabel?: string;
     onConfirm: () => Promise<void> | void;
   };
+  onDeleteRaw?: () => void;
 }
 
-export function TableActions({ onView, onEdit, onDelete }: TableActionsProps) {
-  const hasActions = onView || onEdit || onDelete;
+export function TableActions({ onView, onEdit, onDelete, onDeleteRaw }: TableActionsProps) {
+  const hasActions = onView || onEdit || onDelete || onDeleteRaw;
   if (!hasActions) return null;
 
   return (
@@ -51,6 +52,15 @@ export function TableActions({ onView, onEdit, onDelete }: TableActionsProps) {
             <div className="px-2 py-1">{onEdit}</div>
           ))}
 
+        {onDeleteRaw && (
+          <DropdownMenuItem
+            onClick={onDeleteRaw}
+            className="text-red-600 focus:text-red-600"
+          >
+            <Trash2 className="mr-2 h-4 w-4" />
+            Hapus
+          </DropdownMenuItem>
+        )}
         {onDelete && (
           <ConfirmationDialog
           trigger={

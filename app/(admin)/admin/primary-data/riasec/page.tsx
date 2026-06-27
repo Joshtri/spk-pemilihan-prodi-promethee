@@ -125,15 +125,10 @@ export default function RiasecPage() {
                         />
                       }
                       onDelete={{
-                        message: `Hapus mapping RIASEC "${
-                          item.tipeRiasec
-                        }" dari prodi "${
-                          item.programStudi?.nama_program_studi ??
-                          "yang telah dihapus"
-                        }"?`,
+                        message: `Apakah Anda yakin ingin menghapus mapping RIASEC "${item.tipeRiasec}" dari program studi "${item.programStudi?.nama_program_studi ?? "yang telah dihapus"}"?`,
                         onConfirm: async () => {
                           await axios.delete(`/api/riasec/${item.id}`);
-                          toast.success("Mapping berhasil dihapus");
+                          toast.success("Mapping RIASEC berhasil dihapus");
                           fetchData();
                         },
                       }}

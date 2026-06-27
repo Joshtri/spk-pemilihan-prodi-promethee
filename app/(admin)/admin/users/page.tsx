@@ -123,7 +123,7 @@ export default function UsersPage() {
                         />
                       }
                       onDelete={{
-                        message: `Hapus user "${user.name || user.email}"?`,
+                        message: `Apakah Anda yakin ingin menghapus pengguna "${user.name || user.email}"? Seluruh data terkait termasuk riwayat rekomendasi, nilai akademik, dan evaluasi siswa akan ikut terhapus.`,
                         onConfirm: async () => {
                           await axios.delete(`/api/users/${user.id}`);
                           toast.success("Pengguna berhasil dihapus");

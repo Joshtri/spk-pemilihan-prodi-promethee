@@ -168,7 +168,7 @@ export default function SubKriteriaPage() {
                         />
                       }
                       onDelete={{
-                        message: `Hapus sub kriteria "${sub.nama_sub_kriteria}"?`,
+                        message: `Apakah Anda yakin ingin menghapus sub kriteria "${sub.nama_sub_kriteria}"?`,
                         onConfirm: async () => {
                           await axios.delete(`/api/sub-kriteria/${sub.id}`);
                           toast.success("Sub kriteria berhasil dihapus");

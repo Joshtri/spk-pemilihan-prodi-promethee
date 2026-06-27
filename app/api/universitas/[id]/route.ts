@@ -50,10 +50,24 @@ export async function DELETE(req: NextRequest) {
     if (!id) return NextResponse.json({ error: "Missing ID" }, { status: 400 });
 
     try {
+        const prodiCount = await prisma.programStudi.count({
+            where: { universitasId: id },
+        });
+
+        if (prodiCount > 0) {
+            return NextResponse.json(
+                {
+                    error: "Universitas masih memiliki program studi",
+                    message: `Universitas ini memiliki ${prodiCount} program studi. Hapus atau pindahkan program studi tersebut terlebih dahulu.`,
+                },
+                { status: 400 }
+            );
+        }
+
         await prisma.universitas.delete({ where: { id } });
         return NextResponse.json({ success: true });
     } catch (error) {
         const msg = error instanceof Error ? error.message : "Unknown error";
-        return NextResponse.json({ error: msg }, { status: 500 });
+        return NextResponse.json({ error: msg, message: "Gagal menghapus universitas" }, { status: 500 });
     }
 }

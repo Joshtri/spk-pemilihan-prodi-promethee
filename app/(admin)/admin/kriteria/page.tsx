@@ -16,6 +16,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
+import { Badge } from "@/components/ui/badge";
 import axios from "axios";
 import { Pencil } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -26,6 +27,7 @@ interface Kriteria {
   nama_kriteria: string;
   bobot_kriteria: number;
   keterangan?: string | null;
+  isDefault?: boolean;
 }
 
 export default function KriteriaPage() {
@@ -88,7 +90,16 @@ export default function KriteriaPage() {
             <TableBody>
               {data?.map((krt) => (
                 <TableRow key={krt.id}>
-                  <TableCell>{krt.nama_kriteria}</TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      {krt.nama_kriteria}
+                      {krt.isDefault && (
+                        <Badge variant="secondary" className="text-xs">
+                          Default
+                        </Badge>
+                      )}
+                    </div>
+                  </TableCell>
                   <TableCell>{krt.bobot_kriteria}</TableCell>
                   <TableCell>{krt.keterangan || "-"}</TableCell>
                   <TableCell>
@@ -96,10 +107,9 @@ export default function KriteriaPage() {
                       mode="create"
                       kriteriaId={krt.id}
                       onCompleted={fetchKriteria}
-                    />{" "} 
+                    />{" "}
                     <ViewSubKriteriaDialog kriteriaId={krt.id} />
                     <TableActions
-                      // onView={() => console.log("View", krt.id)}
                       onEdit={
                         <CreateOrEditKriteriaDialog
                           mode="edit"
@@ -122,14 +132,18 @@ export default function KriteriaPage() {
                           onCompleted={fetchKriteria}
                         />
                       }
-                      onDelete={{
-                        message: `Hapus kriteria "${krt.nama_kriteria}"?`,
-                        onConfirm: async () => {
-                          await axios.delete(`/api/kriteria/${krt.id}`);
-                          toast.success("Kriteria berhasil dihapus");
-                          fetchKriteria();
-                        },
-                      }}
+                      onDelete={
+                        krt.isDefault
+                          ? undefined
+                          : {
+                              message: `Apakah Anda yakin ingin menghapus kriteria "${krt.nama_kriteria}"?`,
+                              onConfirm: async () => {
+                                await axios.delete(`/api/kriteria/${krt.id}`);
+                                toast.success("Kriteria berhasil dihapus");
+                                fetchKriteria();
+                              },
+                            }
+                      }
                     />
                   </TableCell>
                 </TableRow>

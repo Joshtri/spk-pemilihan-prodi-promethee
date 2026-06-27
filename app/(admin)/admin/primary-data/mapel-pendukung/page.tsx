@@ -185,10 +185,10 @@ export default function MapelPendukungPage() {
                         />
                       }
                       onDelete={{
-                        message: `Hapus mapel "${item.nama_mata_pelajaran}" dari prodi "${item.programStudi.nama_program_studi}"?`,
+                        message: `Apakah Anda yakin ingin menghapus mata pelajaran "${item.nama_mata_pelajaran}" dari program studi "${item.programStudi.nama_program_studi}"?`,
                         onConfirm: async () => {
                           await axios.delete(`/api/mapel-pendukung/${item.id}`);
-                          toast.success("Mapel berhasil dihapus");
+                          toast.success("Mata pelajaran berhasil dihapus");
                           fetchData();
                         },
                       }}

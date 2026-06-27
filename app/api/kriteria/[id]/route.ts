@@ -3,7 +3,7 @@ import prisma from "@/lib/prisma";
 
 // GET /api/kriteria/[id]
 export async function GET(req: NextRequest) {
-    const id = req.nextUrl.pathname.split("/").pop(); // ambil [id] dari path
+    const id = req.nextUrl.pathname.split("/").pop();
 
     if (!id) {
         return NextResponse.json({ success: false, message: "Invalid ID" }, { status: 400 });
@@ -55,13 +55,37 @@ export async function DELETE(req: NextRequest) {
     }
 
     try {
-        await prisma.kriteria.delete({
+        const kriteria = await prisma.kriteria.findUnique({
             where: { id },
+            include: { _count: { select: { subKriteria: true } } },
         });
 
-        return NextResponse.json({ success: true, message: "Deleted successfully" });
+        if (!kriteria) {
+            return NextResponse.json({ success: false, message: "Kriteria tidak ditemukan" }, { status: 404 });
+        }
+
+        if (kriteria.isDefault) {
+            return NextResponse.json(
+                { success: false, message: "Kriteria ini adalah kriteria default sistem dan tidak dapat dihapus." },
+                { status: 403 }
+            );
+        }
+
+        if (kriteria._count.subKriteria > 0) {
+            return NextResponse.json(
+                {
+                    success: false,
+                    message: `Kriteria ini memiliki ${kriteria._count.subKriteria} sub kriteria. Hapus sub kriteria terlebih dahulu sebelum menghapus kriteria ini.`,
+                },
+                { status: 400 }
+            );
+        }
+
+        await prisma.kriteria.delete({ where: { id } });
+
+        return NextResponse.json({ success: true, message: "Kriteria berhasil dihapus" });
     } catch (error) {
         console.error("DELETE /kriteria/[id] error:", error);
-        return NextResponse.json({ success: false, message: "Delete failed" }, { status: 500 });
+        return NextResponse.json({ success: false, message: "Gagal menghapus kriteria" }, { status: 500 });
     }
 }

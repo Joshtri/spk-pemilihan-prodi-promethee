@@ -106,10 +106,10 @@ export default function UniversitasPage() {
                         />
                       }
                       onDelete={{
-                        message: `Hapus universitas "${item.nama}"?`,
+                        message: `Apakah Anda yakin ingin menghapus universitas "${item.nama}"?`,
                         onConfirm: async () => {
                           await axios.delete(`/api/universitas/${item.id}`);
-                          toast.success("Data berhasil dihapus");
+                          toast.success("Universitas berhasil dihapus");
                           fetchData();
                         },
                       }}
