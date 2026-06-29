@@ -59,7 +59,7 @@ model MataPelajaranPendukung {
   nama_mata_pelajaran String
   createdAt           DateTime     @default(now())
   updatedAt           DateTime     @updatedAt
-  programStudi        ProgramStudi @relation(fields: [programStudiId], references: [id])
+  programStudi        ProgramStudi @relation(fields: [programStudiId], references: [id], onDelete: Cascade)
 }
 
 model ProgramStudiRiasec {
@@ -124,7 +124,7 @@ model EvaluasiKriteria {
   updatedAt      DateTime     @updatedAt
   programStudiId String       @db.VarChar(80)
   kriteria       Kriteria     @relation(fields: [kriteriaId], references: [id])
-  programStudi   ProgramStudi @relation(fields: [programStudiId], references: [id])
+  programStudi   ProgramStudi @relation(fields: [programStudiId], references: [id], onDelete: Cascade)
   subKriteria    SubKriteria  @relation(fields: [subKriteriaId], references: [id])
   user           User         @relation(fields: [userId], references: [id])
 }
@@ -138,18 +138,19 @@ model RumpunIlmu {
 }
 
 model HasilPerhitungan {
-  id             String       @id @default(uuid()) @db.VarChar(80)
-  userId         String       @db.VarChar(80)
-  programStudiId String       @db.VarChar(80)
-  kriteriaId     String       @db.VarChar(80)
-  subKriteriaId  String       @db.VarChar(80)
-  nilai          Float
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
-  kriteria       Kriteria     @relation(fields: [kriteriaId], references: [id])
-  programStudi   ProgramStudi @relation(fields: [programStudiId], references: [id])
-  subKriteria    SubKriteria  @relation(fields: [subKriteriaId], references: [id])
-  user           User         @relation(fields: [userId], references: [id])
+  id               String        @id @default(uuid()) @db.VarChar(80)
+  userId           String        @db.VarChar(80)
+  programStudiId   String?       @db.VarChar(80)
+  programStudiNama String?
+  kriteriaId       String        @db.VarChar(80)
+  subKriteriaId    String        @db.VarChar(80)
+  nilai            Float
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  kriteria         Kriteria      @relation(fields: [kriteriaId], references: [id])
+  programStudi     ProgramStudi? @relation(fields: [programStudiId], references: [id], onDelete: SetNull)
+  subKriteria      SubKriteria   @relation(fields: [subKriteriaId], references: [id])
+  user             User          @relation(fields: [userId], references: [id])
 }
 
 model Log {
@@ -167,7 +168,7 @@ model PilihanProgramStudi {
   programStudiId String       @db.VarChar(80)
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
-  programStudi   ProgramStudi @relation(fields: [programStudiId], references: [id])
+  programStudi   ProgramStudi @relation(fields: [programStudiId], references: [id], onDelete: Cascade)
   user           User         @relation(fields: [userId], references: [id])
 }
 

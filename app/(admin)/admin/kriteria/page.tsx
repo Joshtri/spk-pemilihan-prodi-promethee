@@ -18,16 +18,22 @@ import {
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import axios from "axios";
-import { Pencil } from "lucide-react";
+import { Clock, Lock, Pencil } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { formatDistanceToNow } from "date-fns";
+import { id as idLocale } from "date-fns/locale";
 
 interface Kriteria {
   id: string;
   nama_kriteria: string;
   bobot_kriteria: number;
   keterangan?: string | null;
-  isDefault?: boolean;
+  createdAt: string;
+}
+
+function isWithin24h(createdAt: string): boolean {
+  return Date.now() - new Date(createdAt).getTime() < 24 * 60 * 60 * 1000;
 }
 
 export default function KriteriaPage() {
@@ -82,26 +88,40 @@ export default function KriteriaPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Nama Kriteria</TableHead>
-                <TableHead>Bobot Kriteria</TableHead>
+                <TableHead>Bobot</TableHead>
                 <TableHead>Keterangan</TableHead>
+                <TableHead>Dibuat</TableHead>
                 <TableHead>Aksi</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {data?.map((krt) => (
+              {data?.map((krt) => {
+                const canDelete = isWithin24h(krt.createdAt);
+                const locked = !isWithin24h(krt.createdAt);
+                return (
                 <TableRow key={krt.id}>
                   <TableCell>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       {krt.nama_kriteria}
-                      {krt.isDefault && (
-                        <Badge variant="secondary" className="text-xs">
-                          Default
+                      {canDelete && (
+                        <Badge className="text-xs bg-green-100 text-green-700 border border-green-200 hover:bg-green-100">
+                          <Clock className="mr-1 h-3 w-3" />
+                          Dapat dihapus
+                        </Badge>
+                      )}
+                      {locked && (
+                        <Badge variant="outline" className="text-xs text-muted-foreground">
+                          <Lock className="mr-1 h-3 w-3" />
+                          Terkunci
                         </Badge>
                       )}
                     </div>
                   </TableCell>
                   <TableCell>{krt.bobot_kriteria}</TableCell>
                   <TableCell>{krt.keterangan || "-"}</TableCell>
+                  <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
+                    {formatDistanceToNow(new Date(krt.createdAt), { addSuffix: true, locale: idLocale })}
+                  </TableCell>
                   <TableCell>
                     <CreateOrEditSubKriteriaDialog
                       mode="create"
@@ -132,22 +152,21 @@ export default function KriteriaPage() {
                           onCompleted={fetchKriteria}
                         />
                       }
-                      onDelete={
-                        krt.isDefault
-                          ? undefined
-                          : {
-                              message: `Apakah Anda yakin ingin menghapus kriteria "${krt.nama_kriteria}"?`,
-                              onConfirm: async () => {
-                                await axios.delete(`/api/kriteria/${krt.id}`);
-                                toast.success("Kriteria berhasil dihapus");
-                                fetchKriteria();
-                              },
-                            }
-                      }
+                      onDelete={{
+                        message: locked
+                          ? `Kriteria "${krt.nama_kriteria}" sudah lebih dari 24 jam dan tidak dapat dihapus.`
+                          : `Apakah Anda yakin ingin menghapus kriteria "${krt.nama_kriteria}"? Pastikan tidak ada sub kriteria yang masih terhubung.`,
+                        onConfirm: async () => {
+                          await axios.delete(`/api/kriteria/${krt.id}`);
+                          toast.success("Kriteria berhasil dihapus");
+                          fetchKriteria();
+                        },
+                      }}
                     />
                   </TableCell>
                 </TableRow>
-              ))}
+                );
+              })}
             </TableBody>
           </Table>
         </div>

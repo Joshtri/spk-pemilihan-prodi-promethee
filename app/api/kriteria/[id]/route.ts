@@ -64,18 +64,25 @@ export async function DELETE(req: NextRequest) {
             return NextResponse.json({ success: false, message: "Kriteria tidak ditemukan" }, { status: 404 });
         }
 
-        if (kriteria.isDefault) {
+        // Cek batas waktu 24 jam sejak dibuat
+        const ageMs = Date.now() - new Date(kriteria.createdAt).getTime();
+        const hours24Ms = 24 * 60 * 60 * 1000;
+        if (ageMs > hours24Ms) {
             return NextResponse.json(
-                { success: false, message: "Kriteria ini adalah kriteria default sistem dan tidak dapat dihapus." },
+                {
+                    success: false,
+                    message: "Kriteria ini tidak dapat dihapus karena sudah lebih dari 24 jam sejak dibuat. Hanya kriteria yang baru ditambahkan (dalam 24 jam) yang dapat dihapus.",
+                },
                 { status: 403 }
             );
         }
 
+        // Cek relasi sub kriteria
         if (kriteria._count.subKriteria > 0) {
             return NextResponse.json(
                 {
                     success: false,
-                    message: `Kriteria ini memiliki ${kriteria._count.subKriteria} sub kriteria. Hapus sub kriteria terlebih dahulu sebelum menghapus kriteria ini.`,
+                    message: `Kriteria "${kriteria.nama_kriteria}" tidak dapat dihapus karena memiliki ${kriteria._count.subKriteria} sub kriteria. Hapus semua sub kriteria terlebih dahulu.`,
                 },
                 { status: 400 }
             );
