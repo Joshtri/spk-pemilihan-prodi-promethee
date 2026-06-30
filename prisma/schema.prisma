@@ -76,6 +76,7 @@ model Kriteria {
   nama_kriteria  String
   keterangan     String?
   bobot_kriteria Float              @default(0)
+  isDefault      Boolean            @default(false)
   createdAt      DateTime           @default(now())
   updatedAt      DateTime           @updatedAt
   evaluasi       EvaluasiKriteria[]

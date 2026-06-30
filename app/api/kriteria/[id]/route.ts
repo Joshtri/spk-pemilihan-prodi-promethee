@@ -64,15 +64,9 @@ export async function DELETE(req: NextRequest) {
             return NextResponse.json({ success: false, message: "Kriteria tidak ditemukan" }, { status: 404 });
         }
 
-        // Cek batas waktu 24 jam sejak dibuat
-        const ageMs = Date.now() - new Date(kriteria.createdAt).getTime();
-        const hours24Ms = 24 * 60 * 60 * 1000;
-        if (ageMs > hours24Ms) {
+        if (kriteria.isDefault) {
             return NextResponse.json(
-                {
-                    success: false,
-                    message: "Kriteria ini tidak dapat dihapus karena sudah lebih dari 24 jam sejak dibuat. Hanya kriteria yang baru ditambahkan (dalam 24 jam) yang dapat dihapus.",
-                },
+                { success: false, message: "Kriteria ini adalah kriteria default sistem dan tidak dapat dihapus." },
                 { status: 403 }
             );
         }
