@@ -95,12 +95,14 @@ export default function SiswaDashboard() {
   const topMatch = dashboardData?.topMatch;
   const rumpunIlmuDistribution = dashboardData?.rumpunIlmuDistribution || [];
 
-  // RIASEC count from real tesMinat data
+  // RIASEC count — split comma-separated tipe into individual types
   const riasecCount: Record<string, number> = {};
   tesMinat.forEach((test: any) => {
-    riasecCount[test.tipe] = (riasecCount[test.tipe] || 0) + 1;
+    test.tipe.split(",").map((t: string) => t.trim()).filter(Boolean).forEach((t: string) => {
+      riasecCount[t] = (riasecCount[t] || 0) + 1;
+    });
   });
-  const totalMinatTests = tesMinat.length;
+  const totalMinatTests = Object.values(riasecCount).reduce((s, v) => s + v, 0);
 
   const riasecChartData = Object.entries(riasecCount).map(([tipe, count]) => ({
     subject: RIASEC_INFO[tipe]?.name || tipe,

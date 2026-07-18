@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { useRouter } from "next/navigation";
 import axios from "axios";
 import { toast } from "sonner";
 
@@ -25,6 +26,8 @@ import {
   ArrowRight,
   CircleCheck,
   CheckSquare,
+  ClipboardList,
+  AlertCircle,
 } from "lucide-react";
 import { PrometheeResultSection } from "@/components/promethee/PrometheeResultSection";
 
@@ -40,6 +43,8 @@ const AKREDITASI_OPTIONS = ["Semua", "A", "B", "C"];
 const MIN_SELECTED = 3;
 
 export default function PilihProgramStudiPage() {
+  const router = useRouter();
+  const [hasTesMinat, setHasTesMinat] = useState<boolean | null>(null);
   const [programs, setPrograms] = useState<ProgramStudi[]>([]);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = useState(true);
@@ -54,18 +59,22 @@ export default function PilihProgramStudiPage() {
   const resultsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const fetchPrograms = async () => {
+    const init = async () => {
       try {
         setIsLoading(true);
-        const res = await axios.get("/api/program-studi");
-        setPrograms(res.data.data || []);
+        const [tesRes, prodiRes] = await Promise.all([
+          axios.get("/api/tes-minat/take"),
+          axios.get("/api/program-studi"),
+        ]);
+        setHasTesMinat(!!tesRes.data?.data);
+        setPrograms(prodiRes.data.data || []);
       } catch {
-        toast.error("Gagal memuat data program studi", { description: "Silakan coba lagi nanti." });
+        toast.error("Gagal memuat data", { description: "Silakan coba lagi nanti." });
       } finally {
         setIsLoading(false);
       }
     };
-    fetchPrograms();
+    init();
   }, []);
 
   const universitasOptions = useMemo(() => {
@@ -163,6 +172,26 @@ export default function PilihProgramStudiPage() {
       <div className="flex flex-col items-center justify-center min-h-[400px]">
         <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
         <p className="text-muted-foreground">Memuat program studi...</p>
+      </div>
+    );
+  }
+
+  if (!hasTesMinat) {
+    return (
+      <div className="container mx-auto px-4 py-16 flex flex-col items-center justify-center min-h-[400px] text-center">
+        <div className="p-5 rounded-full bg-yellow-50 border border-yellow-200 mb-4">
+          <AlertCircle className="h-10 w-10 text-yellow-600" />
+        </div>
+        <h2 className="text-xl font-semibold mb-2">Selesaikan Tes Minat RIASEC Dulu</h2>
+        <p className="text-muted-foreground max-w-md mb-6">
+          Sebelum memilih program studi, kamu harus mengerjakan tes minat RIASEC terlebih dahulu.
+          Hasil tes digunakan sebagai salah satu kriteria dalam perhitungan rekomendasi.
+        </p>
+        <Button className="gap-2" onClick={() => router.push("/siswa/tes-minat")}>
+          <ClipboardList className="h-4 w-4" />
+          Mulai Tes Minat RIASEC
+          <ArrowRight className="h-4 w-4" />
+        </Button>
       </div>
     );
   }

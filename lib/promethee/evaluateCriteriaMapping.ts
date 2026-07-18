@@ -54,7 +54,7 @@ export async function evaluateCriteriaMapping(userId: string, programStudiIds: s
     for (const ps of programStudiList) {
 
         // --- Minat ---
-        // DB codes (sorted by bobot DESC): SM1(5) > SM2(3) > SM3(1)
+        // Sub minat (sorted by bobot DESC): "2 atau Lebih Tipe Cocok"(5) > "1 Tipe Cocok"(3) > "Tidak Ada yang Cocok"(1)
         // matchCount >= 2 → rank 0 (best), == 1 → rank 1, == 0 → rank 2 (worst)
         if (minatKriteria) {
             const riasecTypesProdi = ps.riasec.flatMap((r: any) =>
@@ -94,18 +94,18 @@ export async function evaluateCriteriaMapping(userId: string, programStudiIds: s
         }
 
         // --- Biaya Kuliah ---
-        // DB codes (sorted by bobot DESC): SS1(5) > SS2(4) > SS3(3) > SS4(2) > SS5(1)
+        // Sub biaya (sorted by bobot DESC): ≤10.137jt(5) > 15.788jt(4) > 19.804jt(3) > 21.429-22.273jt(2) > ≥37.831jt(1)
         // Cheaper = better (higher rank). Ranges based on actual program studi distribution.
         if (biayaKriteria) {
             const biaya = ps.biaya_kuliah;
             const biayaSubs = sortedSubs(subKriteriaList, biayaKriteria.id);
 
             let idx: number;
-            if (biaya <= 10_137_000)       idx = 0; // SS1 — cheapest
-            else if (biaya <= 15_788_000)  idx = 1; // SS2
-            else if (biaya <= 19_804_000)  idx = 2; // SS3
-            else if (biaya <= 22_273_000)  idx = 3; // SS4
-            else                           idx = biayaSubs.length - 1; // SS5 — most expensive
+            if (biaya <= 10_137_000)       idx = 0;
+            else if (biaya <= 15_788_000)  idx = 1;
+            else if (biaya <= 19_804_000)  idx = 2;
+            else if (biaya <= 22_273_000)  idx = 3;
+            else                           idx = biayaSubs.length - 1;
 
             const sub = biayaSubs[Math.min(idx, biayaSubs.length - 1)];
             if (sub) pushResult(ps.id, biayaKriteria, sub);

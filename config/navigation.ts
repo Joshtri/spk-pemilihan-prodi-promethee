@@ -2,6 +2,7 @@ import {
     BookOpen,
     Building2,
     ChartBar,
+    ClipboardList,
     GraduationCap,
     Layout,
     ListChecks,
@@ -146,6 +147,16 @@ export const navByRole: Record<Role, NavSection[]> = {
                     title: "Dashboard",
                     href: "/siswa/dashboard",
                     icon: React.createElement(Layout, { className: "h-4 w-4" }),
+                },
+            ],
+        },
+        {
+            title: "Tes Minat",
+            items: [
+                {
+                    title: "Tes Minat RIASEC",
+                    href: "/siswa/tes-minat",
+                    icon: React.createElement(ClipboardList, { className: "h-4 w-4" }),
                 },
             ],
         },
