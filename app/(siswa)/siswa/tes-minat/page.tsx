@@ -430,8 +430,8 @@ export default function TesMinatPage() {
                           </Button>
                           <Button
                             size="sm"
-                            variant={ans === false ? "secondary" : "outline"}
-                            className={`flex-1 text-xs ${ans === false ? "" : "hover:bg-red-50 hover:text-red-600 hover:border-red-300"}`}
+                            variant={ans === false ? "default" : "outline"}
+                            className={`flex-1 text-xs ${ans === false ? "bg-red-600 text-white hover:bg-red-700" : "hover:bg-red-50 hover:text-red-600 hover:border-red-300"}`}
                             onClick={() => setAnswer(globalIdx, false)}
                           >
                             Tidak
